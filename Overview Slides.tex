@@ -26,7 +26,82 @@
 
 \maketitle
 
-\begin{frame}{Motivation - Finite Difference}
+\begin{frame}{Overview}
+  \begin{itemize}
+  \item Introduction - discussion of the conservation law its applications
+  \item Overview of finite difference methods
+  \item The WENO scheme
+  \item A positivity preserving WENO scheme 
+  \item Numerical Examples
+  \item Conclusion
+  \end{itemize}
+  \end{frame}
+
+\begin{frame}{Conservation Law}
+  The conservation law is a fundamental principle that forms the basis for modeling numerous physical processes.  In the simplest terms, this law enforces the idea that, in a closed system, the overall quantity of some property can only change by adding or removing this property.  Mathematically, a conservation law is expressed as
+  
+  \begin{equation}
+    \frac{\partial u(x,t)}{\partial t} + \frac{\partial}{\partial x}[f(u(x,t))]=0\label{eq:Conservation Law}
+  \end{equation}
+  
+  where 
+  \begin{itemize}
+    \item $u(x,t)$ is a function describing the distribution of some physical quantity 
+    \item $f$ is a function giving the flux of the conserved quantity.
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Euler Equations}
+  In the context of gas dynamics, the conservation of mass, momentum, and energy form a set of three coupled equations known as the Euler equations.
+  \begin{align}
+    \frac{\partial \rho}{\partial t}+\frac{\partial}{\partial x}[\rho v] &=0\label{eq:MassBalance}\\
+    \frac{\partial}{\partial t}[\rho v]+\frac{\partial}{\partial x}[\rho v^2+p]&=0\label{eq:MomentaBalance}\\
+    \frac{\partial}{\partial t}[\rho(e+\tfrac{v^2}{2})]+\frac{\partial}{\partial x}[(\rho e+\tfrac{\rho v^2}{2} +p)v]&=0\label{eq:EnergyBalance}
+    \end{align} 
+  \begin{itemize}
+    \item Ideal Gas Law gives $e\rho(\gamma -1)=p$
+    \begin{itemize}
+      \item[o] $e$ is specific internal energy.  
+      \item[o] $\gamma$ specific heat ratio $\frac{c_p}{c_v}$
+    \end{itemize}
+    \item $\textbf{u}=[\rho,\rho v,\rho(e+\tfrac{v^2}{2})]^T$
+    \begin{itemize}
+      \item[o] vector of \textit{conserved} variables - specific density, specific momentum, and specific total energy. 
+    \end{itemize}
+    \item $\textbf{u}_p=[\rho,v, p]^T$
+    \begin{itemize}
+      \item[o] vector of \textit{primitive} variables - density, velocity, and pressure
+    \end{itemize}
+    \item $\textbf{f} = [\rho v, \rho v^2 + p, (\rho(e+\tfrac{\rho v^2}{2})+p)v]^T$
+    \begin{itemize}
+      \item[o] vector of fluxes
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Two Fluid System}
+  The Euler equations can be extended to a two-fluid system by adding two equations.
+  \begin{align}
+    \frac{\partial \Gamma_1 }{\partial t} + v\frac{\partial \Gamma_1}{\partial x}&=0\label{eq: Order Parameter One}\\
+    \frac{\partial \Gamma_2 }{\partial t} + v\frac{\partial \Gamma_2}{\partial x}&=0\label{eq: Order Parameter Two}
+  \end{align}
+
+  \begin{itemize}
+    \item Stiffened Gas Equation of State: $p = e\rho(\gamma - 1) -\gamma \Pi$
+    \begin{itemize}
+      \item[o] Provides a means of modeling state for both liquid and gas 
+      \item[o] $\Pi$ is empirical parameter (0 for ideal gasses)  
+    \end{itemize}
+    \item $\Gamma_1 = \frac{1}{\gamma -1}$
+    \item $\Gamma_2 = \frac{\gamma \Pi}{\gamma -1}$
+  \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Finite Difference Schemes}
 \textbf{Why Finite Difference Schemes?}
 \begin{itemize}
 \item Able to capture shock discontinuities prevalent in CFD
@@ -44,6 +119,7 @@
 \item[--] Enhances ability to solve multi-dimensional problems
 \end{itemize}
 \end{itemize}
+
 \end{frame}
 
 
