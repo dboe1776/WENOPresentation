@@ -122,23 +122,99 @@
 \end{frame}
 
 \begin{frame}{Review of Finite Difference Methods}
+  To facilitate the development of the numerical scheme, consider the discrete 1D conservation law over a domain $[x_{min},x_{max}] \times [0,t_{max}]$.
+  \begin{equation}
+    \frac{\partial}{\partial t}[u_i^n] + \frac{\partial}{\partial x}[f(u_i^n)] = 0
+  \end{equation}
+  where 
+  \begin{itemize}
+    \item $u_i = u(x_i)$ is the conserved variable evaluated at the gridpoint $x_i$
+    \begin{itemize}
+      \item[o]  $i \in \{0,1,2 \dots N-1\}$ with $N$ being the total number of cells
+      \item[o] $h = \frac{x_{max} - x_{min}}{N}$ is the step size in-between adjacent cells
+    \end{itemize}
+    \item $u_i^n = u_i(x_i,t_n)$ is the conserved variable evaluated at the $n^{th}$ time step.
+    \begin{itemize}
+      \item[o] $\tau$ denotes temporal time step 
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Finite Difference Schemes}
+  The Taylor Series expansion $u(x)$ centered about $x_i$ evaluated at $x=x_i + jh$ is:
+  \begin{equation}
+    u(x_i+jh)=u(x_i)+(jh)\frac{d u}{dx}\bigg|_{x_i}+\frac{(jh)^2}{2!}\frac{d^2u}{dx^2}\bigg|_{x_i} + \frac{(jh)^3}{3!}\frac{d^3u}{dx^3}\bigg|_{x_i} + \mathcal{O}(h^4)
+  \end{equation}
+  taking $j=1$, we have 
+  \begin{equation}
+    u(x_i+h)=u(x_i)+(h)\frac{d u}{dx}\bigg|_{x_i}+ \frac{1}{2!}\frac{d^2u}{dx^2}\bigg|_{x_i}+ \mathcal{O}(h^3)
+  \end{equation}
+  Truncating the higher order terms and solving for the derivative gives:
+  \begin{equation}
+    \frac{d u}{dx}\bigg|_{x_i} \approx \frac{u(x_i+h) - u(x_i)}{h} = \frac{u_{i+1} - u_i}{h}
+  \end{equation}
+  which is a first order, \textit{forward} finite difference approximation.
+  \begin{itemize}
+    \item It is a forward-biased approximation because we utilize a point ($x_{i+1}$) that falls after or downwind of $x_i$ on the grid.
+    \item Taking $j=-1$ would give a backwards finite difference formula.
+    \item Subtracting the backwards scheme from the forward scheme would cancel the second derivative term to give a second order approximation.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Higher Order Schemes
+  }
+  High order finite difference approximations can be obtained by evaluating the Taylor expansion at multiple points surrounding $x_i$ and combining each approximation such that the $2^{nd}, 3^{rd}, 4^{th} \dots $ order terms cancel.  
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[scale=0.45]{AdvectionHighOrderComparison.eps}\caption{Comparison of First and Third Order solutions for advection equation with smooth initial condition}
+        \label{fig:First/HighOrderComparison}
+      \end{figure}
+
+\end{frame}
+
+\begin{frame}{Discontinuous Solutions}
+  \begin{itemize}
+    \item High order methods work great provided the solution is continuous. 
+    \item For discontinuous solutions, high order methods suffer from spurious oscillations that do not diminish with grid refinement.
+  \end{itemize}
+
   
+  \begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.45]{AdvectionHighOrderComparison_pulse.eps}\caption{Comparison of First and Third Order solutions for advection equation with discontinuous initial condition}
+      \label{fig:First/HighOrderComparison_pulse}
+    \end{figure}
 \end{frame}
 
-
-\begin{frame}{High Order vs. Low Order Performance}
-  show Figure comparing first order to high order for smooth solution
+\begin{frame}{Conservation Laws with Discontinuous Data}
+  Considering, the 
 \end{frame}
 
-\begin{frame}{High Order + discontinuities = Bad}
-  show Advected square wave
-\end{frame}
+\begin{frame}{Motivation - Non-Linear Schemes}
+  \textbf{Why Non-Linear Schemes?}
+  \begin{itemize}
+  \item High order Finite Difference schemes suffer from spurious oscillations near discontinuities
+  \item Non-linear methods attenuate oscillations by utilizing a feedback loop to adjust the solution scheme near discontinuities
+  \begin{itemize}
+  \item[--] High order solution is retained in smooth regions 
+  \item[--] First order, non-oscillatory solution is obtained in discontinuous regions
+  \end{itemize}
+  \end{itemize}
+  \end{frame}
 
-
-\begin{frame}{We Need Non-linear scheme}
-  discuss non-linear scheme
-\end{frame}
-
+\begin{frame}{WENO Overview}
+  The Weighted Essentially Non-Oscillatory (WENO) method is a non-linear scheme designed to achieve non-oscillatory behavior near discontinuities while preserving high-order accuracy in smooth regions \cite{Jiang96}.  The method involves forming $r$ Lagrange polynomial reconstructions on $k_s\in[0,r-1]$ stencils surrounding a point $x_i$.
+  \begin{equation}
+  P_{r,k_s}(x_{i+\tfrac{1}{2}}) = \sum_{q=0}^{q=r-1}a_{r,k_s,q}u_{i-k_s+q}\label{eq:PolynomialReconstruction}
+  \end{equation}
+  These $r^{th}$ order polynomial approximations are then summed as a convex combination
+  \begin{equation}
+  P_{WENO, 2r-1}(x_{i+\frac{1}{2}})=\sum_{k_s=0}^{k_s=r-1}\omega_{r,k_s,i+\frac{1}{2}}P_{r,k_s}(x_{i+\tfrac{1}{2}})\label{eq:WenoEquation}
+  \end{equation}
+  where the non-linear weights $\omega_{r,k_s,i+\frac{1}{2}}$ are calculated using a smoothness indicator function such that any smooth sub-stencil is assigned an optimal weight while the contribution of any oscillatory sub-stencil goes to zero.  Thus, when all sub-stencils contain smooth approximations, the overall reconstruction will be of order $2r-1$.
+  \end{frame}
 
 \begin{frame}{Non-linear Schemes are awesome}
   \begin{figure}[H]
@@ -164,20 +240,6 @@
 \begin{frame}{Positivity is even better for Euler}
   show several plots - demos to illustrate this.
 \end{frame}
-
-
-\begin{frame}{Motivation - Non-Linear Schemes}
-\textbf{Why Non-Linear Schemes?}
-\begin{itemize}
-\item High order Finite Difference schemes suffer from spurious oscillations near discontinuities
-\item Non-linear methods attenuate oscillations by utilizing a feedback loop to adjust the solution scheme near discontinuities
-\begin{itemize}
-\item[--] High order solution is retained in smooth regions 
-\item[--] First order, non-oscillatory solution is obtained in discontinuous regions
-\end{itemize}
-\end{itemize}
-\end{frame}
-
 
 
 \begin{frame}{Non-linear Scheme Comparison}
@@ -241,18 +303,7 @@ Finally, we can define the primitive variables as the quantities from which the 
 \end{frame}
 
 
-\begin{frame}{WENO Overview}
-The Weighted Essentially Non-Oscillatory (WENO) method is non-linear scheme designed to achieve non-oscillatory behavior near discontinuities while preserving high-order accuracy in smooth regions \cite{Jiang96}.  The method involves forming $r$ Lagrange polynomial reconstructions on $k_s\in[0,r-1]$ stencils surrounding a point $x_i$.
-\begin{equation}
-P_{r,k_s}(x_{i+\tfrac{1}{2}}) = \sum_{q=0}^{q=r-1}a_{r,k_s,q}u_{i-k_s+q}\label{eq:PolynomialReconstruction}
-\end{equation}
-These $r^{th}$ order polynomial approximations are then summed as a convex combination
-\begin{equation}
-P_{WENO, 2r-1}(x_{i+\frac{1}{2}})=\sum_{k_s=0}^{k_s=r-1}\omega_{r,k_s,i+\frac{1}{2}}P_{r,k_s}(x_{i+\tfrac{1}{2}})\label{eq:WenoEquation}
-\end{equation}
-where the non-linear weights $\omega_{r,k_s,i+\frac{1}{2}}$ are calculated using a smoothness indicator function such that any smooth sub-stencil is assigned an optimal weight while the contribution of any oscillatory sub-stencil goes to zero.  Thus, when all sub-stencils contain smooth approximations, the overall reconstruction will be of order $2r-1$.
 
-\end{frame}
 
 \begin{frame}{Traditional Flux Based Approach}
 Traditionally, the WENO reconstruction process has been performed on the flux functions \eqref{eq: Flux Functions}.  This allows for the right hand side of a conservation law to be expressed exactly as:
