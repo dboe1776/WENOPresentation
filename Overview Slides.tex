@@ -189,10 +189,6 @@
 \end{frame}
 
 \begin{frame}{Conservation Laws with Discontinuous Data}
-  Considering, the 
-\end{frame}
-
-\begin{frame}{Motivation - Non-Linear Schemes}
   \textbf{Why Non-Linear Schemes?}
   \begin{itemize}
   \item High order Finite Difference schemes suffer from spurious oscillations near discontinuities
@@ -202,19 +198,103 @@
   \item[--] First order, non-oscillatory solution is obtained in discontinuous regions
   \end{itemize}
   \end{itemize}
+\end{frame}
+
+\begin{frame}{Motivation - Non-Linear Schemes}
+  \textbf{WENO Method}  
+  \newline Assume the spatial derivative term can be written exactly as the difference of some ``numerical flux function" evaluated at the cell boundaries.
+  \begin{equation}
+    \frac{\partial}{\partial x}[f(u_i)] = \frac{\bar{f}_{i+1 /2} - \bar{f}_{i-1/2}}{h}
+  \end{equation}
+  where
+  \begin{equation}
+    f(u_i)=\frac{1}{h}\int_{x-h/2}^{x+h/2} \bar{f}(\xi)d\xi
+  \end{equation}
+  \begin{itemize}
+  \item Thus, the goal of the WENO scheme is to develop high order, non-oscillatory approximations for the numerical flux function $\hat{f}_{i\pm1/2}$
+  \item The numerical flux function can be computed from the known flux $f(u_i)$
+  \item Technically, WENO is not, in itself, a finite difference scheme; rather it is a method of flux reconstruction. \cite{Jiang96,Henrick05}
+  \end{itemize}
   \end{frame}
 
-\begin{frame}{WENO Overview}
-  The Weighted Essentially Non-Oscillatory (WENO) method is a non-linear scheme designed to achieve non-oscillatory behavior near discontinuities while preserving high-order accuracy in smooth regions \cite{Jiang96}.  The method involves forming $r$ Lagrange polynomial reconstructions on $k_s\in[0,r-1]$ stencils surrounding a point $x_i$.
+
+\begin{frame}{WENO Framework}
+  For an arbitrary function $u(x_i)$, we can form an $r^{th}$ order, polynomial representation of $u(x_{i+1/2})$ as:
   \begin{equation}
-  P_{r,k_s}(x_{i+\tfrac{1}{2}}) = \sum_{q=0}^{q=r-1}a_{r,k_s,q}u_{i-k_s+q}\label{eq:PolynomialReconstruction}
+    u(x_i+\tfrac{1}{2}h) \approx P_{r,k_s,i+\frac{1}{2}}= \sum_{q=0}^{q=r-1}a_{r,k_s,q}u_{i-k_s+q}\label{eq:PolynomialReconstruction}
   \end{equation}
-  These $r^{th}$ order polynomial approximations are then summed as a convex combination
+  where $a_{r,k_s,q}$ are tabulated constants for a given order ($r$), stencil ($k_s$), and stencil cell ($q$).
+  \begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.165]{StencilReconstruct.png}\caption{Illustration of candidate stencils for forming $P_{r,k_s,i+1/2}$}
+      \label{fig: Stencil Graphic}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{WENO Framework Continued}
+  By properly combining the polynomials associated with each candidate stencil, we can construct a $2r-1$ order approximation for $u(x_{i+1/2})$
   \begin{equation}
-  P_{WENO, 2r-1}(x_{i+\frac{1}{2}})=\sum_{k_s=0}^{k_s=r-1}\omega_{r,k_s,i+\frac{1}{2}}P_{r,k_s}(x_{i+\tfrac{1}{2}})\label{eq:WenoEquation}
+    P^{*}_{r,i+\frac{1}{2}} = \sum_{k_s=0}^{k_s=r-1}b_{r,k_s}P_{r,k_s,i+\frac{1}{2}}\label{eq: Optimal Reconstruction Definition}
   \end{equation}
-  where the non-linear weights $\omega_{r,k_s,i+\frac{1}{2}}$ are calculated using a smoothness indicator function such that any smooth sub-stencil is assigned an optimal weight while the contribution of any oscillatory sub-stencil goes to zero.  Thus, when all sub-stencils contain smooth approximations, the overall reconstruction will be of order $2r-1$.
-  \end{frame}
+  Here, $b_{r,k_s}$ are tabulated weights assigned to the local, $r^{th}$ order polynomial associated with sub-stencil $k_s$.
+  
+  \begin{itemize}
+    \item The goal of WENO is to modify the above approximation such that:
+    \begin{enumerate}
+      \item If sub-stencil $k_s$ contains a discontinuity, the weight $b_{r,k_s} \longrightarrow 0$ effectively negating the impacts of the discontinuity.
+      \item If no sub-stencils contain discontinuities, the above $2r-1$ order approximation is recovered.
+    \end{enumerate}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{WENO Framework Continued}
+  The WENO reconstruction of $u(x_{i+1/2})$ takes the form:
+  \begin{equation}
+    P^{WENO}_{r,i+\frac{1}{2}}=\sum_{k_s=0}^{k_s=r-1}\omega_{r,k_s,i+\frac{1}{2}}P_{r,k_s,i+\frac{1}{2}}\label{eq:WenoEquation}
+  \end{equation}
+  where 
+  \begin{align}
+    \omega_{r,k_s}&=\frac{\alpha_{r,k_s}}{\sum_{j=0}^R\alpha_{r,j}}\\
+    \alpha_{r,k_s}&=\frac{b_{r,k_s}}{(\beta_{r,k_s,i} +10^{-40})^r}
+  \end{align}
+  define the WENO weights in terms of the linear, ``optimal weights'' ($b_{r,k_s}$) and a non-linear smoothness indicator $\beta_{r,k_s,i}$ which is defined as the sum of the $L^2$ norms of all derivatives of the original interpolating polynomial associated with the $k_s$ sub-stencil. 
+  \begin{equation}
+    \beta_{r,k_s,i} = \sum_{l=0}^{r-1}h^{2m-1}\int_{-\frac{1}{2}h}^{\frac{1}{2}h}\bigg[\frac{d^m}{d\xi}P_{r,k_s,i+1/2}(\xi)\bigg]^2d(\xi-x_i)\label{eq:OptimalCoefficients}
+  \end{equation}
+\end{frame}
+
+\begin{frame}{WENO Framework Summary}
+  The WENO process can be thought of as an operator, $L$, that takes a function $w(x_i)$ defined on a grid $x_i \in \{x_0, x_1 \dots x_{N-1}
+  \}$ and computes a $2r-1$ order polynomial approximation of $w$ at the intercell points $x_{i+1/2}$.
+  $$L(w_{i}) = \hat{w}_{{i+\frac{1}{2}}}\approx w_{{i+\frac{1}{2}}}$$
+  The basic steps for a $2r-1$ order approximation are:
+  \begin{enumerate}
+    \item Calculate the $r$ local polynomials: $P_{r,k_s,i+\frac{1}{2}}= \sum_{q=0}^{q=r-1}a_{r,k_s,q}w_{i-k_s+q}$
+    \item For each $P_{r,k_s,i+\frac{1}{2}}$, calculate the WENO smoothness indicators $\beta_{r,k_s,i}$.
+    \begin{itemize}
+      \item[o] These calculations are tabulated in the literature
+    \end{itemize}
+    \item Assemble the WENO weights, $\omega_{r,k_s}$, from the constant optimal weights $b_{r,k_s}$ and the non-linear weights $\beta_{r,k_s,i}$. 
+    \item Calculate the WENO polynomial: $\hat{w}_{i+1/2}=\sum_{k_s=0}^{k_s=r-1}\omega_{r,k_s,i+\frac{1}{2}}P_{r,k_s,i+\frac{1}{2}}$
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{WENO Implementation}
+  The WENO scheme provides a method for forming non-oscillatory approximations to the numerical flux function $\bar{f}_{i\pm 1/2}$. 
+\begin{itemize}
+  \item In general, the WENO reconstruction of the original flux $f$ gives this high order approximation.
+  $$\bar{f}_{i+1/2} \approx \hat{f}_{i+1/2} = L(f(u_i))$$
+  \item  Performing the reconstruction on the known fluxes supplies the high order derivative approximation as:
+  $$\frac{\partial}{\partial x}[f(u_i)] \approx \frac{\hat{f}_{i+1 /2} - \hat{f}_{i-1/2}}{h}$$
+  \item Alternately, the WENO reconstruction can be performed \textit{directly} on the primitive variables (or conservative variable in the scalar case).
+  $$\bar{f}_{i+1/2} \approx f(\hat{u}_{i+1/2}) = f(L(u_i))$$
+  \begin{itemize}
+    \item[o] With this scheme, the spatial derivative is calculated with tabulated constants ($d_j$) as\cite{Shahbazi}:
+    $$	h\frac{\partial f}{\partial x}\bigg|_{x_i}\approx \sum_{j=1}^{j=\text{ceil}(\tfrac{r}{2})}d_j(f(\hat{u}_{i+j-1/2})-f(\hat{u}_{i-j-1/2}))$$
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
 
 \begin{frame}{Non-linear Schemes are awesome}
   \begin{figure}[H]
@@ -225,11 +305,20 @@
 \end{frame}
 
 \begin{frame}{Non-linear schemes also have issues}
-  Explain positivity (show graphic?)
+  \begin{itemize}
+    \item The WENO scheme is designed to provide ``essentially" non-oscillatory behavior, meaning that some relatively insignificant, small oscillations may be remain.
+    \item In many cases, these small oscillations have no impact on the overall solution; however for certain scenarios, they can pose problems.
+    \item For the Euler system, slight oscillations can result in negative density and/or pressure values which imply a complex speed of sound
+    \begin{itemize}
+      \item[o] Unphysical results lead to simulation crashing.
+      \item[o] This issue is readily observed for problems that involve high Mach shock waves with complex interactions
+    \end{itemize}  
+  \end{itemize}
+  \textbf{To remedy this, a positivity preserving scheme needs to be developed.}
 \end{frame}
 
-\begin{frame}{Go through positivity process}
- math
+\begin{frame}{Parameterized Flux Limiting Positivity Preservation Scheme}
+  $$u_i^{n+1}=u_i^n-\frac{\tau}{h}\{H^{RK}_{i,+} - H^{RK}_{i,-}\}$$
 \end{frame}
 
 \begin{frame}{Positivity is good for Burgers equation}
@@ -241,15 +330,6 @@
   show several plots - demos to illustrate this.
 \end{frame}
 
-
-\begin{frame}{Non-linear Scheme Comparison}
-The figure below shows two high-order solutions to a moving shock problem.  The linear scheme gives un-physical oscillations near the shock and other sharp features in the solution;  these issues are remedied by the non-linear scheme.
-\begin{figure}[H]
-\centering
-\includegraphics[scale=0.25]{DensitySolutions.eps}\caption{Comparison of linear and non-linear schemes for shock-entropy wave interaction problem}
-  \label{fig:BurgersZoom}
-\end{figure}
-\end{frame}
 
 
 \begin{frame}{Research Goals}
