@@ -295,6 +295,12 @@
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Non-Linear Scheme for Advected Pulse}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.45]{AdvectionHighOrderComparison_pulseWENO.eps}\caption{Comparison of linear and non-linear schemes for advected pulse}
+    \end{figure}
+\end{frame}
 
 \begin{frame}{Non-linear Schemes are awesome}
   \begin{figure}[H]
@@ -304,7 +310,7 @@
     \end{figure}
 \end{frame}
 
-\begin{frame}{Non-linear schemes also have issues}
+\begin{frame}{Non-linear scheme for Euler Equations}
   \begin{itemize}
     \item The WENO scheme is designed to provide ``essentially" non-oscillatory behavior, meaning that some relatively insignificant, small oscillations may be remain.
     \item In many cases, these small oscillations have no impact on the overall solution; however for certain scenarios, they can pose problems.
@@ -314,11 +320,15 @@
       \item[o] This issue is readily observed for problems that involve high Mach shock waves with complex interactions
     \end{itemize}  
   \end{itemize}
-  \textbf{To remedy this, a positivity preserving scheme needs to be developed.}
+  \textbf{To ensure the physical integrity of the solution, a positivity preserving scheme needs to be developed.}
 \end{frame}
 
 \begin{frame}{Parameterized Flux Limiting Positivity Preservation Scheme}
-  $$u_i^{n+1}=u_i^n-\frac{\tau}{h}\{H^{RK}_{i,+} - H^{RK}_{i,-}\}$$
+  \begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.35]{PositivityZoom.eps}\caption{Example of negative pressure values for high Mach shock wave}
+    \end{figure}
+  % $$u_i^{n+1}=u_i^n-\frac{\tau}{h}\{H^{RK}_{i,+} - H^{RK}_{i,-}\}$$
 \end{frame}
 
 \begin{frame}{Positivity is good for Burgers equation}
