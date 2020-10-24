@@ -379,7 +379,7 @@
 \begin{frame}{Positivity Example}
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.25]{PositivityZoom_wide.eps}\caption{Example of negative pressure values for high Mach shock wave}
+    \includegraphics[scale=0.275]{PositivityZoom.eps}\caption{Example of negative pressure values for high Mach shock wave}
     \end{figure}
   % $$u_i^{n+1}=u_i^n-\frac{\tau}{h}\{H^{RK}_{i,+} - H^{RK}_{i,-}\}$$
 \end{frame}
@@ -394,6 +394,8 @@
 %     \item A positivity preserving scheme can be developed by combining the high order fluxes with the first order fluxes whenever necessary to prevent the solution from obtaining unphysical values.
 %   \end{itemize}
 % \end{frame}
+
+
 
 
 \begin{frame}{Positivity Preserving Scheme}
@@ -423,7 +425,7 @@
     \item $\theta_{i+1/2} \in [0,1]$ are locally defined flux limiters.
     \item $\theta_{i+1/2} =1$ gives pure high order approximation
     \item $\theta_{i+1/2} =0$ gives first order
-    \item For linear function (e.g. density) $\theta_{i+1/2}$ are found using by a sequence of 4 logical statements at each $i$ 
+    \item For linear functions (e.g. density) $\theta_{i+1/2}$ are found by a sequence of 4 logical statements at each $i$. 
     \item Non-linear functions, e.g. pressure, require a root finding routine
   \end{itemize}
 
@@ -433,8 +435,29 @@
   $$
 \end{frame}
 
+\begin{frame}{Positivity Example}
+  Here we modify the previous problem a bit.  To make things a bit more interesting, we ramp up the magnitude of the density interface and also move the interface and shock wave closer together.  In fact, we put them only 2 grid cells apart.  This makes for a particularily challenging problem because the interface is minimally dissipated by the time the shock wave hits it. The initial conditions are now:
+
+  $$
+  (\rho, v, p) = 
+  \begin{cases} 
+  (0.384,27.086,100.176)& \quad -1 \leq x < (-0.2 - 2h) \\
+  (0.1,0,1)& \quad (-0.2 - 2h) \leq x \leq -0.2\\
+  (100,0,1)& \quad  -0.2 < x
+  \end{cases}
+  $$
+\end{frame}
+
+\begin{frame}{Positivity Example}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.275]{PositivityZoomDenstiy.eps}\caption{Example of negative pressure values for high Mach shock wave}
+    \end{figure}
+\end{frame}
+
+
 \begin{frame}{Two-fluid Positivity}
-  The two fluid model poses some additional challenges to the positivity scheme.
+  The two fluid model adds some additional challenges to the positivity scheme.
   \begin{itemize}
     \item The two order parameter equations contain source terms
   \end{itemize}
