@@ -14,12 +14,12 @@
 
 \newcommand{\themename}{\textbf{\textsc{metropolis}}\xspace}
 
-\title{High Order, Non-linear Finite Difference Schemes}
-\subtitle{Thesis Research - Overview}
+\title{High Order Positivity Preserving Finite Difference Scheme for Compressible Two Fluid/Phase Flow Model}
+% \subtitle{Thesis Research - Overview}
 
 %\subtitle{Validation}
 \date{\today}
-\author{Daniel Boe}
+\author{Daniel Boe, Khosro Shahbazi}
 \institute{South Dakota School of Mines and Technology}
 
 \begin{document}
@@ -28,13 +28,64 @@
 
 \begin{frame}{Overview}
   \begin{itemize}
-  \item Introduction - discussion of the conservation law its applications
-  \item Overview of finite difference methods
-  \item The WENO scheme
-  \item A positivity preserving WENO scheme 
+  \item Introduction - Applications, Challenges, and Objectives
+  \item Overview of model
+  \item Methodology
   \item Numerical Examples
   \item Conclusion
   \end{itemize}
+  \end{frame}
+
+  \begin{frame}{Applications}
+    \textbf{Two phase/fluid dynamics occur in numerous fields}
+    \begin{itemize}
+      \item Sustainable Energy / cooling systems
+      \item Defense
+      \item Healthcare
+      \begin{itemize}
+        \item[o] Treatment Modeling
+        \begin{itemize}
+          \item Laser-activated Perflourocarbon nanodroplets (PFCnD)
+        \end{itemize} 
+        \item[o] Cold Chain equipment
+        \begin{itemize}
+          \item Portable vapor-compression systems
+          \item Mobile absorption based systems (Einstein refrigerator, ``Icyball'')
+          \item Switchable adsorption/zeolite refrigeration systems
+        \end{itemize} 
+      \end{itemize}
+      \item Volcanology
+        \begin{itemize}
+          \item[o] Vulcanian eruptions
+        \end{itemize}
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}{Challanges}
+\textbf{Two phase/fluid problems are characterized by physical phenomena that pose significant challenges to numerical algorithms.}
+  \begin{itemize}
+    \item Highly nonlinear (shock waves, and high-intensity ultrasound waves)
+    \item Complex wave propagation and high-frequency features
+        \begin{itemize}
+          \item[o] \textit{Demands high fidelity numerical algorithm to accurately capture}
+        \end{itemize}
+    \item Large, discontinuous jumps across shocks and even larger jumps across material interfaces
+        \begin{itemize}
+          \item[o] \textit{Requires non-oscillatory, positivity preserving scheme to ensure physical integrity}
+        \end{itemize}
+  \end{itemize}  
+  \end{frame}
+
+  \begin{frame}{Objectives}
+    \textbf{The objectives are to design, analyze and implement numerical schemes applicable to general compressible multiphase dynamics satisfying}
+    \begin{enumerate}
+      \item Hyperbolicity
+      \item High order
+      \item Non-oscillatory
+      \item Positivity-preserving
+      \item High efficiency, simplicity and scalability on parallel
+      computers
+    \end{enumerate}
   \end{frame}
 
 \begin{frame}{Conservation Law}
@@ -82,20 +133,23 @@
 
 
 \begin{frame}{Two Fluid System}
-  The Euler equations can be extended to a two-fluid system by adding two equations.
+  The Euler equations can be extended to a two-fluid system by adding two additional equations.
   \begin{align}
-    \frac{\partial \Gamma_1 }{\partial t} + v\frac{\partial \Gamma_1}{\partial x}&=0\label{eq: Order Parameter One}\\
-    \frac{\partial \Gamma_2 }{\partial t} + v\frac{\partial \Gamma_2}{\partial x}&=0\label{eq: Order Parameter Two}
+    \frac{\partial \Gamma_1 }{\partial t} + \frac{\partial}{\partial x}[v\Gamma_1] - \Gamma_1 \frac{\partial v}{\partial x}&=0\label{eq: Order Parameter One}\\
+    \frac{\partial \Gamma_2 }{\partial t} + \frac{\partial}{\partial x}[v\Gamma_2] - \Gamma_1 \frac{\partial v}{\partial x}&=0\label{eq: Order Parameter Two}
   \end{align}
 
   \begin{itemize}
+    \item $\Gamma_1 = \frac{1}{\gamma -1}$ and $\Gamma_2 = \frac{\gamma \Pi}{\gamma -1}$ are interface capturing functions
     \item Stiffened Gas Equation of State: $p = e\rho(\gamma - 1) -\gamma \Pi$
     \begin{itemize}
       \item[o] Provides a means of modeling state for both liquid and gas 
-      \item[o] $\Pi$ is empirical parameter (0 for ideal gasses)  
+      \item[o] $\Pi$ is empirical parameter
+      \begin{itemize}
+        \item [-] $\Pi = 0$ for ideal gas
+        \item [-] $\Pi \approx 4(10^8)$ for liquid water
+      \end{itemize}    
     \end{itemize}
-    \item $\Gamma_1 = \frac{1}{\gamma -1}$
-    \item $\Gamma_2 = \frac{\gamma \Pi}{\gamma -1}$
   \end{itemize}
 
 \end{frame}
@@ -121,7 +175,7 @@
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Review of Finite Difference Methods}
+\begin{frame}{Methodology}
   To facilitate the development of the numerical scheme, consider the discrete 1D conservation law over a domain $[x_{min},x_{max}] \times [0,t_{max}]$.
   \begin{equation}
     \frac{\partial}{\partial t}[u_i^n] + \frac{\partial}{\partial x}[f(u_i^n)] = 0
@@ -140,32 +194,34 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Finite Difference Schemes}
-  The Taylor Series expansion $u(x)$ centered about $x_i$ evaluated at $x=x_i + jh$ is:
-  \begin{equation}
-    u(x_i+jh)=u(x_i)+(jh)\frac{d u}{dx}\bigg|_{x_i}+\frac{(jh)^2}{2!}\frac{d^2u}{dx^2}\bigg|_{x_i} + \frac{(jh)^3}{3!}\frac{d^3u}{dx^3}\bigg|_{x_i} + \mathcal{O}(h^4)
-  \end{equation}
-  taking $j=1$, we have 
-  \begin{equation}
-    u(x_i+h)=u(x_i)+(h)\frac{d u}{dx}\bigg|_{x_i}+ \frac{1}{2!}\frac{d^2u}{dx^2}\bigg|_{x_i}+ \mathcal{O}(h^3)
-  \end{equation}
-  Truncating the higher order terms and solving for the derivative gives:
-  \begin{equation}
-    \frac{d u}{dx}\bigg|_{x_i} \approx \frac{u(x_i+h) - u(x_i)}{h} = \frac{u_{i+1} - u_i}{h}
-  \end{equation}
-  which is a first order, \textit{forward} finite difference approximation.
-  \begin{itemize}
-    \item It is a forward-biased approximation because we utilize a point ($x_{i+1}$) that falls after or downwind of $x_i$ on the grid.
-    \item Taking $j=-1$ would give a backwards finite difference formula.
-    \item Subtracting the backwards scheme from the forward scheme would cancel the second derivative term to give a second order approximation.
-  \end{itemize}
-\end{frame}
+% GOOD Slide, but likely not within time constraints for this presentation
+
+% \begin{frame}{Finite Difference Schemes}
+%   The Taylor Series expansion $u(x)$ centered about $x_i$ evaluated at $x=x_i + jh$ is:
+%   \begin{equation}
+%     u(x_i+jh)=u(x_i)+(jh)\frac{d u}{dx}\bigg|_{x_i}+\frac{(jh)^2}{2!}\frac{d^2u}{dx^2}\bigg|_{x_i} + \frac{(jh)^3}{3!}\frac{d^3u}{dx^3}\bigg|_{x_i} + \mathcal{O}(h^4)
+%   \end{equation}
+%   taking $j=1$, we have 
+%   \begin{equation}
+%     u(x_i+h)=u(x_i)+(h)\frac{d u}{dx}\bigg|_{x_i}+ \frac{1}{2!}\frac{d^2u}{dx^2}\bigg|_{x_i}+ \mathcal{O}(h^3)
+%   \end{equation}
+%   Truncating the higher order terms and solving for the derivative gives:
+%   \begin{equation}
+%     \frac{d u}{dx}\bigg|_{x_i} \approx \frac{u(x_i+h) - u(x_i)}{h} = \frac{u_{i+1} - u_i}{h}
+%   \end{equation}
+%   which is a first order, \textit{forward} finite difference approximation.
+%   \begin{itemize}
+%     \item It is a forward-biased approximation because we utilize a point ($x_{i+1}$) that falls after or downwind of $x_i$ on the grid.
+%     \item Taking $j=-1$ would give a backwards finite difference formula.
+%     \item Subtracting the backwards scheme from the forward scheme would cancel the second derivative term to give a second order approximation.
+%   \end{itemize}
+% \end{frame}
 
 
-\begin{frame}{Higher Order Schemes
-  }
-  High order finite difference approximations can be obtained by evaluating the Taylor expansion at multiple points surrounding $x_i$ and combining each approximation such that the $2^{nd}, 3^{rd}, 4^{th} \dots $ order terms cancel.  
-
+\begin{frame}{Higher Order Schemes}
+  %% This paragraph is coupled with the previous slide (which I am probably throwing out)
+  % High order finite difference approximations can be obtained by evaluating the Taylor expansion at multiple points surrounding $x_i$ and combining each approximation such that the $2^{nd}, 3^{rd}, 4^{th} \dots $ order terms cancel.  
+  Figure below compares $3^{rd}$ and $1^{st}$ order approximations for a simple, continuous advection problem.
     \begin{figure}[H]
       \centering
       \includegraphics[scale=0.45]{AdvectionHighOrderComparison.eps}\caption{Comparison of First and Third Order solutions for advection equation with smooth initial condition}
@@ -175,11 +231,8 @@
 \end{frame}
 
 \begin{frame}{Discontinuous Solutions}
-  \begin{itemize}
-    \item High order methods work great provided the solution is continuous. 
-    \item For discontinuous solutions, high order methods suffer from spurious oscillations that do not diminish with grid refinement.
-  \end{itemize}
 
+  For discontinuous solutions, high order methods suffer from spurious oscillations that do not diminish with grid refinement.
   
   \begin{figure}[H]
     \centering
@@ -188,19 +241,19 @@
     \end{figure}
 \end{frame}
 
-\begin{frame}{Conservation Laws with Discontinuous Data}
-  \textbf{Why Non-Linear Schemes?}
-  \begin{itemize}
-  \item High order Finite Difference schemes suffer from spurious oscillations near discontinuities
-  \item Non-linear methods attenuate oscillations by utilizing a feedback loop to adjust the solution scheme near discontinuities
-  \begin{itemize}
-  \item[--] High order solution is retained in smooth regions 
-  \item[--] First order, non-oscillatory solution is obtained in discontinuous regions
-  \end{itemize}
-  \end{itemize}
-\end{frame}
+% \begin{frame}{Conservation Laws with Discontinuous Data}
+%   \textbf{Why Non-Linear Schemes?}
+%   \begin{itemize}
+%   \item High order Finite Difference schemes suffer from spurious oscillations near discontinuities
+%   \item Non-linear methods attenuate oscillations by utilizing a feedback loop to adjust the solution scheme near discontinuities
+%   \begin{itemize}
+%   \item[--] High order solution is retained in smooth regions 
+%   \item[--] First order, non-oscillatory solution is obtained in discontinuous regions
+%   \end{itemize}
+%   \end{itemize}
+% \end{frame}
 
-\begin{frame}{Motivation - Non-Linear Schemes}
+\begin{frame}{WENO scheme}
   \textbf{WENO Method}  
   \newline Assume the spatial derivative term can be written exactly as the difference of some ``numerical flux function" evaluated at the cell boundaries.
   \begin{equation}
@@ -211,9 +264,9 @@
     f(u_i)=\frac{1}{h}\int_{x-h/2}^{x+h/2} \bar{f}(\xi)d\xi
   \end{equation}
   \begin{itemize}
-  \item Thus, the goal of the WENO scheme is to develop high order, non-oscillatory approximations for the numerical flux function $\hat{f}_{i\pm1/2}$
+  \item Thus, the goal of the WENO scheme is to develop high order, non-oscillatory approximations for the numerical flux function $\bar{f}_{i\pm1/2}$
   \item The numerical flux function can be computed from the known flux $f(u_i)$
-  \item Technically, WENO is not, in itself, a finite difference scheme; rather it is a method of flux reconstruction. \cite{Jiang96,Henrick05}
+  % \item Technically, WENO is not, in itself, a finite difference scheme; rather it is a method of flux reconstruction. \cite{Jiang96,Henrick05}
   \end{itemize}
   \end{frame}
 
@@ -231,7 +284,7 @@
   \end{figure}
 \end{frame}
 
-\begin{frame}{WENO Framework Continued}
+\begin{frame}{WENO Framework}
   By properly combining the polynomials associated with each candidate stencil, we can construct a $2r-1$ order approximation for $u(x_{i+1/2})$
   \begin{equation}
     P^{*}_{r,i+\frac{1}{2}} = \sum_{k_s=0}^{k_s=r-1}b_{r,k_s}P_{r,k_s,i+\frac{1}{2}}\label{eq: Optimal Reconstruction Definition}
@@ -239,7 +292,7 @@
   Here, $b_{r,k_s}$ are tabulated weights assigned to the local, $r^{th}$ order polynomial associated with sub-stencil $k_s$.
   
   \begin{itemize}
-    \item The goal of WENO is to modify the above approximation such that:
+    \item The heart of WENO involves modifying the above approximation such that:
     \begin{enumerate}
       \item If sub-stencil $k_s$ contains a discontinuity, the weight $b_{r,k_s} \longrightarrow 0$ effectively negating the impacts of the discontinuity.
       \item If no sub-stencils contain discontinuities, the above $2r-1$ order approximation is recovered.
@@ -247,7 +300,7 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{WENO Framework Continued}
+\begin{frame}{WENO Framework}
   The WENO reconstruction of $u(x_{i+1/2})$ takes the form:
   \begin{equation}
     P^{WENO}_{r,i+\frac{1}{2}}=\sum_{k_s=0}^{k_s=r-1}\omega_{r,k_s,i+\frac{1}{2}}P_{r,k_s,i+\frac{1}{2}}\label{eq:WenoEquation}
@@ -257,7 +310,7 @@
     \omega_{r,k_s}&=\frac{\alpha_{r,k_s}}{\sum_{j=0}^R\alpha_{r,j}}\\
     \alpha_{r,k_s}&=\frac{b_{r,k_s}}{(\beta_{r,k_s,i} +10^{-40})^r}
   \end{align}
-  define the WENO weights in terms of the linear, ``optimal weights'' ($b_{r,k_s}$) and a non-linear smoothness indicator $\beta_{r,k_s,i}$ which is defined as the sum of the $L^2$ norms of all derivatives of the original interpolating polynomial associated with the $k_s$ sub-stencil. 
+  define the WENO weights in terms of the linear, ``optimal weights'' ($b_{r,k_s}$) and a non-linear smoothness indicator $\beta_{r,k_s,i}$ which is defined as the sum of the $L^2$ norms of all derivatives of the original interpolating polynomial associated with the $k_s$ sub-stencil \cite{Jiang96}. 
   \begin{equation}
     \beta_{r,k_s,i} = \sum_{l=0}^{r-1}h^{2m-1}\int_{-\frac{1}{2}h}^{\frac{1}{2}h}\bigg[\frac{d^m}{d\xi}P_{r,k_s,i+1/2}(\xi)\bigg]^2d(\xi-x_i)\label{eq:OptimalCoefficients}
   \end{equation}
@@ -284,12 +337,12 @@
 \begin{itemize}
   \item In general, the WENO reconstruction of the original flux $f$ gives this high order approximation.
   $$\bar{f}_{i+1/2} \approx \hat{f}_{i+1/2} = L(f(u_i))$$
-  \item  Performing the reconstruction on the known fluxes supplies the high order derivative approximation as:
-  $$\frac{\partial}{\partial x}[f(u_i)] \approx \frac{\hat{f}_{i+1 /2} - \hat{f}_{i-1/2}}{h}$$
-  \item Alternately, the WENO reconstruction can be performed \textit{directly} on the primitive variables (or conservative variable in the scalar case).
+  % \item  Performing the reconstruction on the known fluxes supplies the high order derivative approximation as:
+  % $$\frac{\partial}{\partial x}[f(u_i)] \approx \frac{\hat{f}_{i+1 /2} - \hat{f}_{i-1/2}}{h}$$
+  \item Alternately, the WENO reconstruction can be performed \textit{directly} upon the primitive variables (or conservative variable in the scalar case).
   $$\bar{f}_{i+1/2} \approx f(\hat{u}_{i+1/2}) = f(L(u_i))$$
   \begin{itemize}
-    \item[o] With this scheme, the spatial derivative is calculated with tabulated constants ($d_j$) as\cite{Shahbazi}:
+    \item[o] With this scheme, the spatial derivative is calculated with tabulated constants ($d_j$) as \cite{Shahbazi}:
     $$	h\frac{\partial f}{\partial x}\bigg|_{x_i}\approx \sum_{j=1}^{j=\text{ceil}(\tfrac{r}{2})}d_j(f(\hat{u}_{i+j-1/2})-f(\hat{u}_{i-j-1/2}))$$
   \end{itemize}
 \end{itemize}
@@ -298,11 +351,11 @@
 \begin{frame}{Non-Linear Scheme for Advected Pulse}
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.45]{AdvectionHighOrderComparison_pulseWENO.eps}\caption{Comparison of linear and non-linear schemes for advected pulse}
+    \includegraphics[scale=0.45]{AdvectionHighOrderComparison_pulseWENO.eps}\caption{Comparison of linear and WENO schemes for advected pulse}
     \end{figure}
 \end{frame}
 
-\begin{frame}{Non-linear Schemes are awesome}
+\begin{frame}{Non-linear Scheme for Euler System}
   \begin{figure}[H]
     \centering
     \includegraphics[scale=0.25]{DensitySolutions.eps}\caption{Comparison of linear and non-linear schemes for shock-entropy wave interaction problem}
@@ -323,41 +376,99 @@
   \textbf{To ensure the physical integrity of the solution, a positivity preserving scheme needs to be developed.}
 \end{frame}
 
-\begin{frame}{Parameterized Flux Limiting Positivity Preservation Scheme}
+\begin{frame}{Positivity Example}
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.35]{PositivityZoom.eps}\caption{Example of negative pressure values for high Mach shock wave}
+    \includegraphics[scale=0.25]{PositivityZoom_wide.eps}\caption{Example of negative pressure values for high Mach shock wave}
     \end{figure}
   % $$u_i^{n+1}=u_i^n-\frac{\tau}{h}\{H^{RK}_{i,+} - H^{RK}_{i,-}\}$$
 \end{frame}
 
-\begin{frame}{Positivity is good for Burgers equation}
+
+% \begin{frame}{Positivity preservation implementation}
+%   \begin{itemize}
+%     \item The first order scheme can be shown to be maximum principle preserving - meaning the solution is bounded by the minimum and maximum values of the initial data.
+%     $$
+%     \min(u(x,t=0)) \leq u(x,t) \leq \max(u(x,t=0))
+%     $$
+%     \item A positivity preserving scheme can be developed by combining the high order fluxes with the first order fluxes whenever necessary to prevent the solution from obtaining unphysical values.
+%   \end{itemize}
+% \end{frame}
+
+
+\begin{frame}{Positivity Preserving Scheme}
+  A positivity preserving scheme can be developed by combining the high order fluxes with the first order fluxes whenever necessary to prevent the solution from obtaining unphysical values.
+  \begin{itemize}
+    \item $h_{i+1/2}$: flux from first order method
+    \item $H_{i+1/2}$: High order, WENO flux
+  \end{itemize}
   
+  The high order WENO approximation is of the form:
+  $$
+  \frac{\partial}{\partial x}[f(u_i)] = \frac{H_{i+1 /2} - H_{i-1/2}}{h}+\mathcal{O}(h^{2r-1})
+  $$
+
+  The first order approximation is:
+  $$
+  \frac{\partial}{\partial x}[f(u_i)] = \frac{h_{i+1 /2} - h_{i-1/2}}{h}+\mathcal{O}(h)
+  $$
 \end{frame}
 
 
-\begin{frame}{Positivity is even better for Euler}
-  show several plots - demos to illustrate this.
+\begin{frame}{Positivity Preserving Scheme}
+  The positivity preserving scheme is realized by forming a modified flux as \cite{Positivity2013,Positivity2014}: 
+  $$\tilde{H}_{i+1/2}=h_{i+1/2} + \theta_{i+1/2}(H_{i+1/2} - h_{i+1/2})$$
+  
+  \begin{itemize}
+    \item $\theta_{i+1/2} \in [0,1]$ are locally defined flux limiters.
+    \item $\theta_{i+1/2} =1$ gives pure high order approximation
+    \item $\theta_{i+1/2} =0$ gives first order
+    \item For linear function (e.g. density) $\theta_{i+1/2}$ are found using by a sequence of 4 logical statements at each $i$ 
+    \item Non-linear functions, e.g. pressure, require a root finding routine
+  \end{itemize}
+
+  The modified, high order, positivity preserving approximation is thus:
+  $$
+  \frac{\partial}{\partial x}[f(u_i)] \approx \frac{\tilde{H}_{i+1 /2} - \tilde{H}_{i-1/2}}{h}
+  $$
 \end{frame}
 
-
-
-\begin{frame}{Research Goals}
-  The overall goals of this project are as follows:
+\begin{frame}{Two-fluid Positivity}
+  The two fluid model poses some additional challenges to the positivity scheme.
   \begin{itemize}
-  \item Implement Dr. Shahbazi's proposed primitive variable based WENO scheme \cite{Shahbazi} for $9^{\text{th}}$ order and higher
-  \item Enforce positivity preservation for density and pressure
-  \begin{itemize}
-  \item[--] Generalize methods of Xiong et al \cite{Positivity2014} to primitive variable based WENO scheme.
-  \end{itemize}
-  \item Extend to multi-phase model
-  \begin{itemize}
-  \item[--] Four equation model of Saurel et al \cite{FourEquationModel}
-  \item[--] Five equation model \cite{FiveEquationModel}
-  \end{itemize}
-  \item Extend to 2D
+    \item The two order parameter equations contain source terms
   \end{itemize}
 \end{frame}
+
+\begin{frame}{Acknowledgment}
+  \begin{itemize}
+  % \item
+  %   Dr. Stanislav Emelianov, Georgia Tech.
+  \item
+    Office of Naval Research, contract $\#$ N000141712965
+  \end{itemize}  
+  
+\end{frame}  
+
+
+% \begin{frame}{Research Goals}
+%   The overall goals of this project are as follows:
+%   \begin{itemize}
+%   \item Implement Dr. Shahbazi's proposed primitive variable based WENO scheme \cite{Shahbazi} for $9^{\text{th}}$ order and higher
+%   \item Enforce positivity preservation for density and pressure
+%   \begin{itemize}
+%   \item[--] Generalize methods of Xiong et al \cite{Positivity2014} to primitive variable based WENO scheme.
+%   \end{itemize}
+%   \item Extend to multi-phase model
+%   \begin{itemize}
+%   \item[--] Four equation model of Saurel et al \cite{FourEquationModel}
+%   \item[--] Five equation model \cite{FiveEquationModel}
+%   \end{itemize}
+%   \item Extend to 2D
+%   \end{itemize}
+% \end{frame}
+
+
 
 \section{High Level Description of Method}
 
