@@ -436,14 +436,14 @@
 \end{frame}
 
 \begin{frame}{Positivity Example}
-  Here we modify the previous problem a bit.  To make things a bit more interesting, we ramp up the magnitude of the density interface and also move the interface and shock wave closer together.  In fact, we put them only 2 grid cells apart.  This makes for a particularily challenging problem because the interface is minimally dissipated by the time the shock wave hits it. The initial conditions are now:
+  Here we consider a particularly challenging problem that contains a strong shock interacting with a density interface:
 
   $$
   (\rho, v, p) = 
   \begin{cases} 
-  (0.384,27.086,100.176)& \quad -1 \leq x < (-0.2 - 2h) \\
-  (0.1,0,1)& \quad (-0.2 - 2h) \leq x \leq -0.2\\
-  (100,0,1)& \quad  -0.2 < x
+  (0.384,27.086,100.176)& \quad 0 \leq x < (0.5 - 2h) \\
+  (0.1,0,1)& \quad (0.5 - 2h) \leq x \leq 0.5\\
+  (100,0,1)& \quad  0.5 < x
   \end{cases}
   $$
 \end{frame}
@@ -451,7 +451,14 @@
 \begin{frame}{Positivity Example}
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.275]{PositivityZoomDenstiy.eps}\caption{Example of negative pressure values for high Mach shock wave}
+    \includegraphics[scale=0.275]{PositivityZoomDenstiy.eps}\caption{Impact of positivity scheme for strong shock/interface interaction}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Positivity Example}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.275]{ShockInterfaceComparison.eps}\caption{Example of negative pressure values for high Mach shock wave}
     \end{figure}
 \end{frame}
 
