@@ -247,27 +247,29 @@
     \end{figure}
 \end{frame}
 
+\begin{frame}{Non Linear Scheme}
+  \textbf{In order to solve the Euler System or the Two Fluid model, we need a globally high order, non-linear scheme that can locally adapt to discontinuous solutions}
+\end{frame}
 
 
-\begin{frame}{Methodology}
-  To facilitate the development of the numerical scheme, consider the discrete 1D conservation law over a domain $[x_{min},x_{max}] \times [0,t_{max}]$.
+\begin{frame}{Discretization}
+  We seek non-linear scheme for the discrete conservation law
   \begin{equation}
     \frac{\partial}{\partial t}[u_i^n] + \frac{\partial}{\partial x}[f(u_i^n)] = 0
   \end{equation}
   where 
   \begin{itemize}
-    \item $u_i = u(x_i)$ is the conserved variable evaluated at the gridpoint $x_i$
+    \item Domain is $[x_{min},x_{max}] \times [0,t_{max}]$
+    \begin{figure}[H]
+      \centering
+      \includegraphics[scale=0.175]{GridGraphic_time.png}
+    \end{figure}
+    \item $u_i = u(x_i)$ is the conserved variable evaluated at the gridpoint $x_i$ at time step $n$
     \begin{itemize}
       \item[o]  $i \in \{0,1,2 \dots N-1\}$ with $N$ being the total number of cells
       \item[o] $h = \frac{x_{max} - x_{min}}{N}$ is the step size in-between adjacent cells
     \end{itemize}
-    \item $u_i^n = u_i(x_i,t_n)$ is the conserved variable evaluated at the $n^{th}$ time step.
-    \begin{itemize}
-      \item[o] $\tau$ denotes temporal time step 
-    \end{itemize}
   \end{itemize}
-
-
 \end{frame}
 
 % \begin{frame}{Conservation Laws with Discontinuous Data}
@@ -282,105 +284,178 @@
 %   \end{itemize}
 % \end{frame}
 
-\begin{frame}{WENO scheme}
-  \textbf{WENO Method}  
-  \newline Assume the spatial derivative term can be written exactly as the difference of some ``numerical flux function" evaluated at the cell boundaries.
-  \begin{equation}
-    \frac{\partial}{\partial x}[f(u_i)] = \frac{\bar{f}_{i+1 /2} - \bar{f}_{i-1/2}}{h}
-  \end{equation}
-  where
-  \begin{equation}
-    f(u_i)=\frac{1}{h}\int_{x-h/2}^{x+h/2} \bar{f}(\xi)d\xi
-  \end{equation}
-  \begin{itemize}
-  \item Thus, the goal of the WENO scheme is to develop high order, non-oscillatory approximations for the numerical flux function $\bar{f}_{i\pm1/2}$
-  \item The numerical flux function can be computed from the known flux $f(u_i)$
-  % \item Technically, WENO is not, in itself, a finite difference scheme; rather it is a method of flux reconstruction. \cite{Jiang96,Henrick05}
-  \end{itemize}
+% \begin{frame}{WENO scheme}
+%   \textbf{WENO Method}  
+%   \newline Assume the spatial derivative term can be written exactly as the difference of some ``numerical flux function" evaluated at the cell boundaries.
+%   \begin{equation}
+%     \frac{\partial}{\partial x}[f(u_i)] = \frac{\bar{f}_{i+1 /2} - \bar{f}_{i-1/2}}{h}
+%   \end{equation}
+%   where
+%   \begin{equation}
+%     f(u_i)=\frac{1}{h}\int_{x-h/2}^{x+h/2} \bar{f}(\xi)d\xi
+%   \end{equation}
+%   \begin{itemize}
+%   \item Thus, the goal of the WENO scheme is to develop high order, non-oscillatory approximations for the numerical flux function $\bar{f}_{i\pm1/2}$
+%   \item The numerical flux function can be computed from the known flux $f(u_i)$
+%   % \item Technically, WENO is not, in itself, a finite difference scheme; rather it is a method of flux reconstruction. \cite{Jiang96,Henrick05}
+%   \end{itemize}
+%   \end{frame}
+
+
+
+
+
+\begin{frame}{WENO Scheme}
+\begin{columns}
+
+
+  \begin{column}{0.65\textwidth}
+    From divergence theorem, we can relate the derivative term at $x_i$ to the fluxes into and out of the cell $I_i$.
+    $$
+      \frac{\partial}{\partial x}[f(u_i)] \approx \frac{\hat{f}_{i+1 /2} - \hat{f}_{i-1/2}}{h}
+    $$
+    \textbf{Our goal}:
+
+  Non-oscillatory polynomial approximations to the cell boundary fluxes, $f(u(x_{i\pm1/2}))$  
+  \end{column}
+
+  \begin{column}{0.3\textwidth}
+  \vspace{\topsep}
+  \includegraphics[scale=0.175]{CellGraphic.png}%
+  \end{column}
+    
+  \end{columns}
+\end{frame}
+
+
+
+  \begin{frame}{WENO Overview}
+    \begin{enumerate}
+      \item Calculate local polynomial approximation at each stencil
+      \item Measure the smoothness of each polynomial approximation
+      \item Form a weighted sum of all the approximations
+          \begin{itemize}
+            \item[o] Stencil weight is proportional to smoothness
+            \item[o] Discontinuous stencils assigned weight $\rightarrow$ 0
+            \item[o] Smooth stencils assigned an optimal weight 
+            \item[o] If all stencils are smooth, overall approximation is of optimal order. 
+          \end{itemize}
+    \end{enumerate}
+
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[scale=0.175]{DiscontinuousStencil.png}
+      \end{figure}
   \end{frame}
 
 
-\begin{frame}{WENO Framework}
-  For an arbitrary function $u(x_i)$, we can form an $r^{th}$ order, polynomial representation of $u(x_{i+1/2})$ as:
-  \begin{equation}
-    u(x_i+\tfrac{1}{2}h) \approx P_{r,k_s,i+\frac{1}{2}}= \sum_{q=0}^{q=r-1}a_{r,k_s,q}u_{i-k_s+q}\label{eq:PolynomialReconstruction}
-  \end{equation}
-  where $a_{r,k_s,q}$ are tabulated constants for a given order ($r$), stencil ($k_s$), and stencil cell ($q$).
-  \begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.165]{StencilReconstruct.png}\caption{Illustration of candidate stencils for forming $P_{r,k_s,i+1/2}$}
-      \label{fig: Stencil Graphic}
-  \end{figure}
-\end{frame}
-
-\begin{frame}{WENO Framework}
-  By properly combining the polynomials associated with each candidate stencil, we can construct a $2r-1$ order approximation for $u(x_{i+1/2})$
-  \begin{equation}
-    P^{*}_{r,i+\frac{1}{2}} = \sum_{k_s=0}^{k_s=r-1}b_{r,k_s}P_{r,k_s,i+\frac{1}{2}}\label{eq: Optimal Reconstruction Definition}
-  \end{equation}
-  Here, $b_{r,k_s}$ are tabulated weights assigned to the local, $r^{th}$ order polynomial associated with sub-stencil $k_s$.
-  
-  \begin{itemize}
-    \item The heart of WENO involves modifying the above approximation such that:
-    \begin{enumerate}
-      \item If sub-stencil $k_s$ contains a discontinuity, the weight $b_{r,k_s} \longrightarrow 0$ effectively negating the impacts of the discontinuity.
-      \item If no sub-stencils contain discontinuities, the above $2r-1$ order approximation is recovered.
-    \end{enumerate}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{WENO Framework}
+\begin{frame}{WENO Implementation}
   The WENO reconstruction of $u(x_{i+1/2})$ takes the form:
   \begin{equation}
-    P^{WENO}_{r,i+\frac{1}{2}}=\sum_{k_s=0}^{k_s=r-1}\omega_{r,k_s,i+\frac{1}{2}}P_{r,k_s,i+\frac{1}{2}}\label{eq:WenoEquation}
+    u(x_{i+1/2})\approx P^{WENO}_{i+\frac{1}{2}}=\sum_{k=0}^{r-1}\omega_{k,i+\frac{1}{2}}P_{k,i+\frac{1}{2}}\label{eq:WenoEquation}
   \end{equation}
-  where 
+  where $\omega_{k,i+\frac{1}{2}}$ is the normalization of the non-linear weights:
   \begin{align}
-    \omega_{r,k_s}&=\frac{\alpha_{r,k_s}}{\sum_{j=0}^R\alpha_{r,j}}\\
-    \alpha_{r,k_s}&=\frac{b_{r,k_s}}{(\beta_{r,k_s,i} +10^{-40})^r}
+    \alpha_{k,i+\frac{1}{2}}&=\frac{b_{r,k}}{(\beta_{k,i+\frac{1}{2}} +10^{-40})^r}
   \end{align}
-  define the WENO weights in terms of the linear, ``optimal weights'' ($b_{r,k_s}$) and a non-linear smoothness indicator $\beta_{r,k_s,i}$ which is defined as the sum of the $L^2$ norms of all derivatives of the original interpolating polynomial associated with the $k_s$ sub-stencil \cite{Jiang96}. 
+  $b_{r,k}$ are the optimal linear weights and 
+  $\beta_{r,k_s,i}$ are the smoothness indicators
   \begin{equation}
-    \beta_{r,k_s,i} = \sum_{l=0}^{r-1}h^{2m-1}\int_{-\frac{1}{2}h}^{\frac{1}{2}h}\bigg[\frac{d^m}{d\xi}P_{r,k_s,i+1/2}(\xi)\bigg]^2d(\xi-x_i)\label{eq:OptimalCoefficients}
+    \beta_{k,i} = \sum_{l=0}^{r-1}h^{2m-1}\int_{-\frac{1}{2}h}^{\frac{1}{2}h}\bigg[\frac{d^m}{d\xi}P_{k,i+1/2}(\xi)\bigg]^2d(\xi-x_i)\label{eq:OptimalCoefficients}
   \end{equation}
 \end{frame}
 
-\begin{frame}{WENO Framework Summary}
-  The WENO process can be thought of as an operator, $L$, that takes a function $w(x_i)$ defined on a grid $x_i \in \{x_0, x_1 \dots x_{N-1}
-  \}$ and computes a $2r-1$ order polynomial approximation of $w$ at the intercell points $x_{i+1/2}$.
-  $$L(w_{i}) = \hat{w}_{{i+\frac{1}{2}}}\approx w_{{i+\frac{1}{2}}}$$
-  The basic steps for a $2r-1$ order approximation are:
-  \begin{enumerate}
-    \item Calculate the $r$ local polynomials: $P_{r,k_s,i+\frac{1}{2}}= \sum_{q=0}^{q=r-1}a_{r,k_s,q}w_{i-k_s+q}$
-    \item For each $P_{r,k_s,i+\frac{1}{2}}$, calculate the WENO smoothness indicators $\beta_{r,k_s,i}$.
-    \begin{itemize}
-      \item[o] These calculations are tabulated in the literature
-    \end{itemize}
-    \item Assemble the WENO weights, $\omega_{r,k_s}$, from the constant optimal weights $b_{r,k_s}$ and the non-linear weights $\beta_{r,k_s,i}$. 
-    \item Calculate the WENO polynomial: $\hat{w}_{i+1/2}=\sum_{k_s=0}^{k_s=r-1}\omega_{r,k_s,i+\frac{1}{2}}P_{r,k_s,i+\frac{1}{2}}$
-  \end{enumerate}
-\end{frame}
+% \begin{frame}{WENO Framework}
+%   For an arbitrary function $u(x_i)$, we can form an $r^{th}$ order, polynomial representation of $u(x_{i+1/2})$ as:
+%   \begin{equation}
+%     u(x_i+\tfrac{1}{2}h) \approx P_{r,k_s,i+\frac{1}{2}}= \sum_{q=0}^{q=r-1}a_{r,k_s,q}u_{i-k_s+q}\label{eq:PolynomialReconstruction}
+%   \end{equation}
+%   where $a_{r,k_s,q}$ are tabulated constants for a given order ($r$), stencil ($k_s$), and stencil cell ($q$).
+%   \begin{figure}[H]
+%     \centering
+%     \includegraphics[scale=0.165]{StencilReconstruct.png}\caption{Illustration of candidate stencils for forming $P_{r,k_s,i+1/2}$}
+%       \label{fig: Stencil Graphic}
+%   \end{figure}
+% \end{frame}
 
-\begin{frame}{WENO Implementation}
-  The WENO scheme provides a method for forming non-oscillatory approximations to the numerical flux function $\bar{f}_{i\pm 1/2}$. 
-\begin{itemize}
-  \item In general, the WENO reconstruction of the original flux $f$ gives this high order approximation.
-  $$\bar{f}_{i+1/2} \approx \hat{f}_{i+1/2} = L(f(u_i))$$
-  % \item  Performing the reconstruction on the known fluxes supplies the high order derivative approximation as:
-  % $$\frac{\partial}{\partial x}[f(u_i)] \approx \frac{\hat{f}_{i+1 /2} - \hat{f}_{i-1/2}}{h}$$
-  \item Alternately, the WENO reconstruction can be performed \textit{directly} upon the primitive variables (or conservative variable in the scalar case).
-  $$\bar{f}_{i+1/2} \approx f(\hat{u}_{i+1/2}) = f(L(u_i))$$
-  \begin{itemize}
-    \item[o] With this scheme, the spatial derivative is calculated with tabulated constants ($d_j$) as \cite{Shahbazi}:
-    $$	h\frac{\partial f}{\partial x}\bigg|_{x_i}\approx \sum_{j=1}^{j=\text{ceil}(\tfrac{r}{2})}d_j(f(\hat{u}_{i+j-1/2})-f(\hat{u}_{i-j-1/2}))$$
-  \end{itemize}
-\end{itemize}
+% \begin{frame}{WENO Framework}
+%   By properly combining the polynomials associated with each candidate stencil, we can construct a $2r-1$ order approximation for $u(x_{i+1/2})$
+%   \begin{equation}
+%     P^{*}_{r,i+\frac{1}{2}} = \sum_{k_s=0}^{k_s=r-1}b_{r,k_s}P_{r,k_s,i+\frac{1}{2}}\label{eq: Optimal Reconstruction Definition}
+%   \end{equation}
+%   Here, $b_{r,k_s}$ are tabulated weights assigned to the local, $r^{th}$ order polynomial associated with sub-stencil $k_s$.
+  
+%   \begin{itemize}
+%     \item The heart of WENO involves modifying the above approximation such that:
+%     \begin{enumerate}
+%       \item If sub-stencil $k_s$ contains a discontinuity, the weight $b_{r,k_s} \longrightarrow 0$ effectively negating the impacts of the discontinuity.
+%       \item If no sub-stencils contain discontinuities, the above $2r-1$ order approximation is recovered.
+%     \end{enumerate}
+%   \end{itemize}
+% \end{frame}
+
+% \begin{frame}{WENO Framework}
+%   The WENO reconstruction of $u(x_{i+1/2})$ takes the form:
+%   \begin{equation}
+%     P^{WENO}_{r,i+\frac{1}{2}}=\sum_{k_s=0}^{k_s=r-1}\omega_{r,k_s,i+\frac{1}{2}}P_{r,k_s,i+\frac{1}{2}}\label{eq:WenoEquation}
+%   \end{equation}
+%   where 
+%   \begin{align}
+%     \omega_{r,k_s}&=\frac{\alpha_{r,k_s}}{\sum_{j=0}^R\alpha_{r,j}}\\
+%     \alpha_{r,k_s}&=\frac{b_{r,k_s}}{(\beta_{r,k_s,i} +10^{-40})^r}
+%   \end{align}
+%   define the WENO weights in terms of the linear, ``optimal weights'' ($b_{r,k_s}$) and a non-linear smoothness indicator $\beta_{r,k_s,i}$ which is defined as the sum of the $L^2$ norms of all derivatives of the original interpolating polynomial associated with the $k_s$ sub-stencil \cite{Jiang96}. 
+%   \begin{equation}
+%     \beta_{r,k_s,i} = \sum_{l=0}^{r-1}h^{2m-1}\int_{-\frac{1}{2}h}^{\frac{1}{2}h}\bigg[\frac{d^m}{d\xi}P_{r,k_s,i+1/2}(\xi)\bigg]^2d(\xi-x_i)\label{eq:OptimalCoefficients}
+%   \end{equation}
+% \end{frame}
+
+% \begin{frame}{WENO Framework Summary}
+%   The WENO process can be thought of as an operator, $L$, that takes a function $w(x_i)$ defined on a grid $x_i \in \{x_0, x_1 \dots x_{N-1}
+%   \}$ and computes a $2r-1$ order polynomial approximation of $w$ at the intercell points $x_{i+1/2}$.
+%   $$L(w_{i}) = \hat{w}_{{i+\frac{1}{2}}}\approx w_{{i+\frac{1}{2}}}$$
+%   The basic steps for a $2r-1$ order approximation are:
+%   \begin{enumerate}
+%     \item Calculate the $r$ local polynomials: $P_{r,k_s,i+\frac{1}{2}}= \sum_{q=0}^{q=r-1}a_{r,k_s,q}w_{i-k_s+q}$
+%     \item For each $P_{r,k_s,i+\frac{1}{2}}$, calculate the WENO smoothness indicators $\beta_{r,k_s,i}$.
+%     \begin{itemize}
+%       \item[o] These calculations are tabulated in the literature
+%     \end{itemize}
+%     \item Assemble the WENO weights, $\omega_{r,k_s}$, from the constant optimal weights $b_{r,k_s}$ and the non-linear weights $\beta_{r,k_s,i}$. 
+%     \item Calculate the WENO polynomial: $\hat{w}_{i+1/2}=\sum_{k_s=0}^{k_s=r-1}\omega_{r,k_s,i+\frac{1}{2}}P_{r,k_s,i+\frac{1}{2}}$
+%   \end{enumerate}
+% \end{frame}
+
+% \begin{frame}{WENO Implementation}
+%   The WENO scheme provides a method for forming non-oscillatory approximations to the numerical flux function $\bar{f}_{i\pm 1/2}$. 
+% \begin{itemize}
+%   \item In general, the WENO reconstruction of the original flux $f$ gives this high order approximation.
+%   $$\bar{f}_{i+1/2} \approx \hat{f}_{i+1/2} = L(f(u_i))$$
+%   % \item  Performing the reconstruction on the known fluxes supplies the high order derivative approximation as:
+%   % $$\frac{\partial}{\partial x}[f(u_i)] \approx \frac{\hat{f}_{i+1 /2} - \hat{f}_{i-1/2}}{h}$$
+%   \item Alternately, the WENO reconstruction can be performed \textit{directly} upon the primitive variables (or conservative variable in the scalar case).
+%   $$\bar{f}_{i+1/2} \approx f(\hat{u}_{i+1/2}) = f(L(u_i))$$
+%   \begin{itemize}
+%     \item[o] With this scheme, the spatial derivative is calculated with tabulated constants ($d_j$) as \cite{Shahbazi}:
+%     $$	h\frac{\partial f}{\partial x}\bigg|_{x_i}\approx \sum_{j=1}^{j=\text{ceil}(\tfrac{r}{2})}d_j(f(\hat{u}_{i+j-1/2})-f(\hat{u}_{i-j-1/2}))$$
+%   \end{itemize}
+% \end{itemize}
+% \end{frame}
+
+\begin{frame}{WENO Summary}
+  The WENO scheme provides a method for forming non-oscillatory approximations to primitive variables at cell boundaries.
+  $$
+  \hat{u}_{i+\frac{1}{2}} \approx u(x_{i}+\tfrac{1}{2}h)
+  $$
+  The derivative is calculated using tabulated constants $d_j$.
+  $$	h\frac{\partial f}{\partial x}\bigg|_{x_i}\approx \sum_{j=1}^{j=\text{ceil}(\tfrac{r}{2})}d_j(f(\hat{u}_{i+j-1/2})-f(\hat{u}_{i-j-1/2}))$$
 \end{frame}
 
 \begin{frame}{Non-Linear Scheme for Advected Pulse}
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.45]{AdvectionHighOrderComparison_pulseWENO.eps}\caption{Comparison of linear and WENO schemes for advected pulse}
+    \includegraphics[scale=0.475]{AdvectionHighOrderComparison_pulseWENO.eps}\caption{Comparison of linear and WENO schemes for advected pulse}
     \end{figure}
 \end{frame}
 
@@ -402,7 +477,7 @@
       \item[o] This issue is readily observed for problems that involve high Mach shock waves with complex interactions
     \end{itemize}  
   \end{itemize}
-  \textbf{To ensure the physical integrity of the solution, a positivity preserving scheme needs to be developed.}
+  \textbf{To achieve a robust scheme, a positivity preserving method needs to be developed.}
 \end{frame}
 
 \begin{frame}{Positivity Example}
