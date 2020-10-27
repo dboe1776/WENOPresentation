@@ -1,4 +1,4 @@
-\documentclass[9pt]{beamer}
+\documentclass[10pt]{beamer}
 
 \usetheme{metropolis}
 \usepackage{appendixnumberbeamer}
@@ -73,13 +73,14 @@
         \begin{itemize}
           \item[o] \textit{Requires non-oscillatory, positivity preserving scheme to ensure physical integrity}
         \end{itemize}
-  \end{itemize}  
+  \end{itemize}
+  \textbf{Failure to maintain positivity of density and the square of sound speed leads to the simulation crashing}  
   \end{frame}
 
   \begin{frame}{Objectives}
     \textbf{The objectives are to design, analyze and implement numerical schemes applicable to general compressible multiphase dynamics satisfying}
     \begin{enumerate}
-      \item Hyperbolicity
+      \item Hyperbolicity (real Eigenvalues/characteristic speeds)
       \item High order
       \item Non-oscillatory
       \item Positivity-preserving
@@ -104,7 +105,6 @@
 \end{frame}
 
 \begin{frame}{Euler Equations}
-  In the context of gas dynamics, the conservation of mass, momentum, and energy form a set of three coupled equations known as the Euler equations.
   \begin{align}
     \frac{\partial \rho}{\partial t}+\frac{\partial}{\partial x}[\rho v] &=0\label{eq:MassBalance}\\
     \frac{\partial}{\partial t}[\rho v]+\frac{\partial}{\partial x}[\rho v^2+p]&=0\label{eq:MomentaBalance}\\
@@ -154,6 +154,35 @@
 
 \end{frame}
 
+% \begin{frame}{Model Summary}
+%   \begin{align}
+%     \frac{\partial \rho}{\partial t}+\frac{\partial}{\partial x}[\rho v] &=0\label{eq:MassBalance}\\
+%     \frac{\partial}{\partial t}[\rho v]+\frac{\partial}{\partial x}[\rho v^2+p]&=0\label{eq:MomentaBalance}\\
+%     \frac{\partial}{\partial t}[\rho(e+\tfrac{v^2}{2})]+\frac{\partial}{\partial x}[(\rho e+\tfrac{\rho v^2}{2} +p)v]&=0\label{eq:EnergyBalance}\\
+%     \frac{\partial \Gamma_1 }{\partial t} + \frac{\partial}{\partial x}[v\Gamma_1] - \Gamma_1 \frac{\partial v}{\partial x}&=0\label{eq: Order Parameter One}\\
+%     \frac{\partial \Gamma_2 }{\partial t} + \frac{\partial}{\partial x}[v\Gamma_2] - \Gamma_1 \frac{\partial v}{\partial x}&=0\label{eq: Order Parameter Two}\\
+%     e\rho(\gamma - 1) -\gamma \Pi &=p\\
+%     \Gamma_1 &= \frac{1}{\gamma -1}\\
+%     \Gamma_2 &= \frac{\gamma \Pi}{\gamma -1}
+%     \end{align} 
+% \end{frame}
+
+\begin{frame}{Model Summary}
+  \begin{align}
+    \frac{\partial \rho}{\partial t}+\frac{\partial}{\partial x}[\rho v] &=0\label{eq:MassBalance}\\
+    \frac{\partial}{\partial t}[\rho v]+\frac{\partial}{\partial x}[\rho v^2+p]&=0\label{eq:MomentaBalance}\\
+    \frac{\partial}{\partial t}[\rho(e+\tfrac{v^2}{2})]+\frac{\partial}{\partial x}[(\rho e+\tfrac{\rho v^2}{2} +p)v]&=0\label{eq:EnergyBalance}\\
+    \frac{\partial \Gamma_1 }{\partial t} + \frac{\partial}{\partial x}[v\Gamma_1] - \Gamma_1 \frac{\partial v}{\partial x}&=0\label{eq: Order Parameter One}\\
+    \frac{\partial \Gamma_2 }{\partial t} + \frac{\partial}{\partial x}[v\Gamma_2] - \Gamma_1 \frac{\partial v}{\partial x}&=0\label{eq: Order Parameter Two}\\
+    e\rho(\gamma - 1) -\gamma \Pi &=p
+    \end{align} 
+\end{frame}
+
+
+
+
+
+
 
 \begin{frame}{Finite Difference Schemes}
 \textbf{Why Finite Difference Schemes?}
@@ -161,37 +190,14 @@
 \item Able to capture shock discontinuities prevalent in CFD
 \item Well suited for multi-scale phenomena associated with multi-phase/multi-fluid dynamics.
 \item Unmatched simplicity and efficiency
-\item Less computationally expensive than Finite Volume Methods
-\begin{itemize}
-\item[--] Particularly for high order or two/three dimensional problems \cite{FVFDComparison}
-\end{itemize}
 \end{itemize}
 \textbf{Why High Order Schemes?}
 \begin{itemize}
-\item High order schemes allow for greater accuracy per CPU cost
+\item High order schemes allow for greater accuracy per CPU cost \cite{Shahbazi2017,Shahbazi}
 \begin{itemize}
 \item[--] Enhances ability to solve multi-dimensional problems
 \end{itemize}
 \end{itemize}
-\end{frame}
-
-\begin{frame}{Methodology}
-  To facilitate the development of the numerical scheme, consider the discrete 1D conservation law over a domain $[x_{min},x_{max}] \times [0,t_{max}]$.
-  \begin{equation}
-    \frac{\partial}{\partial t}[u_i^n] + \frac{\partial}{\partial x}[f(u_i^n)] = 0
-  \end{equation}
-  where 
-  \begin{itemize}
-    \item $u_i = u(x_i)$ is the conserved variable evaluated at the gridpoint $x_i$
-    \begin{itemize}
-      \item[o]  $i \in \{0,1,2 \dots N-1\}$ with $N$ being the total number of cells
-      \item[o] $h = \frac{x_{max} - x_{min}}{N}$ is the step size in-between adjacent cells
-    \end{itemize}
-    \item $u_i^n = u_i(x_i,t_n)$ is the conserved variable evaluated at the $n^{th}$ time step.
-    \begin{itemize}
-      \item[o] $\tau$ denotes temporal time step 
-    \end{itemize}
-  \end{itemize}
 \end{frame}
 
 % GOOD Slide, but likely not within time constraints for this presentation
@@ -239,6 +245,29 @@
     \includegraphics[scale=0.45]{AdvectionHighOrderComparison_pulse.eps}\caption{Comparison of First and Third Order solutions for advection equation with discontinuous initial condition}
       \label{fig:First/HighOrderComparison_pulse}
     \end{figure}
+\end{frame}
+
+
+
+\begin{frame}{Methodology}
+  To facilitate the development of the numerical scheme, consider the discrete 1D conservation law over a domain $[x_{min},x_{max}] \times [0,t_{max}]$.
+  \begin{equation}
+    \frac{\partial}{\partial t}[u_i^n] + \frac{\partial}{\partial x}[f(u_i^n)] = 0
+  \end{equation}
+  where 
+  \begin{itemize}
+    \item $u_i = u(x_i)$ is the conserved variable evaluated at the gridpoint $x_i$
+    \begin{itemize}
+      \item[o]  $i \in \{0,1,2 \dots N-1\}$ with $N$ being the total number of cells
+      \item[o] $h = \frac{x_{max} - x_{min}}{N}$ is the step size in-between adjacent cells
+    \end{itemize}
+    \item $u_i^n = u_i(x_i,t_n)$ is the conserved variable evaluated at the $n^{th}$ time step.
+    \begin{itemize}
+      \item[o] $\tau$ denotes temporal time step 
+    \end{itemize}
+  \end{itemize}
+
+
 \end{frame}
 
 % \begin{frame}{Conservation Laws with Discontinuous Data}
@@ -435,7 +464,7 @@
   $$
 \end{frame}
 
-\begin{frame}{Positivity Example}
+\begin{frame}{Numerical Example}
   Here we consider a particularly challenging problem that contains a strong shock interacting with a density interface:
 
   $$
@@ -463,12 +492,12 @@
 \end{frame}
 
 
-\begin{frame}{Two-fluid Positivity}
-  The two fluid model adds some additional challenges to the positivity scheme.
-  \begin{itemize}
-    \item The two order parameter equations contain source terms
-  \end{itemize}
-\end{frame}
+% \begin{frame}{Two-fluid Positivity}
+%   The two fluid model adds some additional challenges to the positivity scheme.
+%   \begin{itemize}
+%     \item The two order parameter equations contain source terms
+%   \end{itemize}
+% \end{frame}
 
 \begin{frame}{Acknowledgment}
   \begin{itemize}
