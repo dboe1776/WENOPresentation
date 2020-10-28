@@ -90,8 +90,11 @@
   \end{frame}
 
 \begin{frame}{Conservation Law}
-  The conservation law is a fundamental principle that forms the basis for modeling numerous physical processes.  In the simplest terms, this law enforces the idea that, in a closed system, the overall quantity of some property can only change by adding or removing this property.  Mathematically, a conservation law is expressed as
-  
+  \begin{itemize}
+    \item  In a closed system, the overall quantity of some property can only change by adding or removing this property. 
+    \item Enforces fundamental principle that forms the basis for modeling numerous physical processes. 
+  \end{itemize} 
+
   \begin{equation}
     \frac{\partial u(x,t)}{\partial t} + \frac{\partial}{\partial x}[f(u(x,t))]=0\label{eq:Conservation Law}
   \end{equation}
@@ -168,13 +171,14 @@
 % \end{frame}
 
 \begin{frame}{Model Summary}
+\textbf{We need to solve the following model subject to shocks, oscillations, and discontinuities:}
   \begin{align}
-    \frac{\partial \rho}{\partial t}+\frac{\partial}{\partial x}[\rho v] &=0\label{eq:MassBalance}\\
-    \frac{\partial}{\partial t}[\rho v]+\frac{\partial}{\partial x}[\rho v^2+p]&=0\label{eq:MomentaBalance}\\
-    \frac{\partial}{\partial t}[\rho(e+\tfrac{v^2}{2})]+\frac{\partial}{\partial x}[(\rho e+\tfrac{\rho v^2}{2} +p)v]&=0\label{eq:EnergyBalance}\\
-    \frac{\partial \Gamma_1 }{\partial t} + \frac{\partial}{\partial x}[v\Gamma_1] - \Gamma_1 \frac{\partial v}{\partial x}&=0\label{eq: Order Parameter One}\\
-    \frac{\partial \Gamma_2 }{\partial t} + \frac{\partial}{\partial x}[v\Gamma_2] - \Gamma_1 \frac{\partial v}{\partial x}&=0\label{eq: Order Parameter Two}\\
-    e\rho(\gamma - 1) -\gamma \Pi &=p
+    \frac{\partial \rho}{\partial t}+\frac{\partial}{\partial x}[\rho v] &=0 \nonumber\\
+    \frac{\partial}{\partial t}[\rho v]+\frac{\partial}{\partial x}[\rho v^2+p]&=0 \nonumber \\
+    \frac{\partial}{\partial t}[\rho(e+\tfrac{v^2}{2})]+\frac{\partial}{\partial x}[(\rho e+\tfrac{\rho v^2}{2} +p)v]&=0 \nonumber\\
+    \frac{\partial \Gamma_1 }{\partial t} + \frac{\partial}{\partial x}[v\Gamma_1] - \Gamma_1 \frac{\partial v}{\partial x}&=0 \nonumber\\
+    \frac{\partial \Gamma_2 }{\partial t} + \frac{\partial}{\partial x}[v\Gamma_2] - \Gamma_1 \frac{\partial v}{\partial x}&=0 \nonumber \\
+    e\rho(\gamma - 1) -\gamma \Pi &=p \nonumber
     \end{align} 
 \end{frame}
 
@@ -248,12 +252,12 @@
 \end{frame}
 
 \begin{frame}{Non Linear Scheme}
-  \textbf{In order to solve the Euler System or the Two Fluid model, we need a globally high order, non-linear scheme that can locally adapt to discontinuous solutions}
+  \textbf{To obtain a robust algorithm, we need a globally high order, non-linear scheme that can locally adapt to discontinuous solutions}
 \end{frame}
 
 
 \begin{frame}{Discretization}
-  We seek non-linear scheme for the discrete conservation law
+  We seek a non-linear scheme for the discrete conservation law
   \begin{equation}
     \frac{\partial}{\partial t}[u_i^n] + \frac{\partial}{\partial x}[f(u_i^n)] = 0
   \end{equation}
@@ -305,10 +309,8 @@
 
 
 
-\begin{frame}{WENO Scheme}
+\begin{frame}{Approach}
 \begin{columns}
-
-
   \begin{column}{0.65\textwidth}
     From divergence theorem, we can relate the derivative term at $x_i$ to the fluxes into and out of the cell $I_i$.
     $$
@@ -316,7 +318,7 @@
     $$
     \textbf{Our goal}:
 
-  Non-oscillatory polynomial approximations to the cell boundary fluxes, $f(u(x_{i\pm1/2}))$  
+  High order, non-oscillatory approximations to the cell boundary fluxes, $f(u(x_{i\pm1/2}))$  
   \end{column}
 
   \begin{column}{0.3\textwidth}
@@ -329,7 +331,8 @@
 
 
 
-  \begin{frame}{WENO Overview}
+  \begin{frame}{The Plan}
+    \textbf{Weighted Essentially Non Oscillatory (WENO) Method}
     \begin{enumerate}
       \item Calculate local polynomial approximation at each stencil
       \item Measure the smoothness of each polynomial approximation
@@ -448,7 +451,7 @@
   $$
   \hat{u}_{i+\frac{1}{2}} \approx u(x_{i}+\tfrac{1}{2}h)
   $$
-  The derivative is calculated using tabulated constants $d_j$.
+  The derivative is then approximated to high order using tabulated constants $d_j$.
   $$	h\frac{\partial f}{\partial x}\bigg|_{x_i}\approx \sum_{j=1}^{j=\text{ceil}(\tfrac{r}{2})}d_j(f(\hat{u}_{i+j-1/2})-f(\hat{u}_{i-j-1/2}))$$
 \end{frame}
 
