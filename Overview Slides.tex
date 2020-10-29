@@ -483,7 +483,7 @@
 \begin{frame}{Non-linear Scheme for Euler System}
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.25]{DensitySolutions.eps}
+    \includegraphics[scale=0.295]{DensitySolutions.eps}
     \end{figure}
 \end{frame}
 
@@ -568,7 +568,7 @@
   \begin{cases} 
   (0.384,27.086,100.176)& \quad 0 \leq x < (0.5 - 2h) \\
   (0.1,0,1)& \quad (0.5 - 2h) \leq x \leq 0.5\\
-  (100,0,1)& \quad  0.5 < x
+  (100,0,1)& \quad  0.5 < x \leq 1
   \end{cases}
   $$
 \end{frame}
@@ -602,15 +602,27 @@
 \begin{frame}{Two-Fluid Positivity Implementation}
 Two-fluid positivity is implemented using the flux limiting technique to form modified fluxes:
 $$\tilde{H}_{i+1/2}=h_{i+1/2} + \theta_{i+1/2}(H_{i+1/2} - h_{i+1/2})$$
-Because of the source terms in the order parameter equations, at each cell, we need to enforce (DB and KS, unpublished)
+Because of the source terms in the order parameter equations, at each cell, we need to add the restriction of equal limiters (DB and KS, unpublished)
 $$
 \theta_{i+\frac{1}{2}} = \theta_{i-\frac{1}{2}} 
 $$
 
 \end{frame}
 
-\begin{frame}{Conclusions and Future Work}
+\begin{frame}{Two Fluid Positivity Example}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.275]{TwoFluidComparison.eps}
+    \end{figure}
+\end{frame}
 
+
+\begin{frame}{Conclusions and Ongoing Work}
+\begin{itemize}
+  \item A WENO finite difference scheme for two/phase fluid flow (KS, Computers and Fluids, 2019)
+  \item Addition of positivity preservation for Euler System (DB and KS, unpublished)
+  \item Extend positivity preserving method to two-fluid problems 
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Acknowledgment}
