@@ -481,16 +481,19 @@
 \end{frame}
 
 \begin{frame}{Non-linear Scheme for Euler System}
+  % \begin{figure}[H]
+  %   \centering
+  %   \includegraphics[scale=0.295]{DensitySolutions.eps}
+  %   \end{figure}
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.295]{DensitySolutions.eps}
+    \includegraphics[scale=0.275]{ShockEntropyComparison.eps}
     \end{figure}
 \end{frame}
 
 \begin{frame}{Non-linear scheme for Euler Equations}
   \begin{itemize}
-    \item The WENO scheme is designed to provide ``essentially" non-oscillatory behavior, 
-    \item Some relatively insignificant, small oscillations may be remain.
+    \item The WENO scheme is designed to provide ``essentially" non-oscillatory behavior; small oscillations may be remain.
     \item In many cases, these small oscillations have no impact on the overall solution; however for certain scenarios, they can pose problems.
     \item For the Euler system, slight oscillations can result in negative density and/or pressure values which imply a non-real speed of sound
     \begin{itemize}
