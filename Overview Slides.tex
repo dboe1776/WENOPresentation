@@ -203,7 +203,7 @@
 \end{itemize}
 \end{frame}
 
-% GOOD Slide, but likely not within time constraints for this presentation
+% GOOD Reference, but likely not within time constraints for this presentation
 
 % \begin{frame}{Finite Difference Schemes}
 %   The Taylor Series expansion $u(x)$ centered about $x_i$ evaluated at $x=x_i + jh$ is:
@@ -508,19 +508,6 @@
 \end{frame}
 
 
-% \begin{frame}{Positivity preservation implementation}
-%   \begin{itemize}
-%     \item The first order scheme can be shown to be maximum principle preserving - meaning the solution is bounded by the minimum and maximum values of the initial data.
-%     $$
-%     \min(u(x,t=0)) \leq u(x,t) \leq \max(u(x,t=0))
-%     $$
-%     \item A positivity preserving scheme can be developed by combining the high order fluxes with the first order fluxes whenever necessary to prevent the solution from obtaining unphysical values.
-%   \end{itemize}
-% \end{frame}
-
-
-
-
 \begin{frame}{Positivity Preserving Scheme}
   A positivity preserving scheme can be developed by combining the high order fluxes with the first order fluxes whenever necessary to prevent the solution from obtaining unphysical values.
   \begin{itemize}
@@ -558,8 +545,8 @@
   $$
 \end{frame}
 
-\begin{frame}{Numerical Example}
-  Here we consider a particularly challenging problem that contains a strong shock interacting with a density interface:
+\begin{frame}{Positivity Example}
+  Here we consider a problem consisting of a Mach 9.86 shock traveling through helium that interacts with a density interface:
 
   $$
   (\rho, v, p) = 
@@ -569,6 +556,10 @@
   (100,0,1)& \quad  0.5 < x \leq 1
   \end{cases}
   $$
+  \begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.175]{ShockWave.png}
+    \end{figure}
 \end{frame}
 
 \begin{frame}{Positivity Example}
@@ -616,9 +607,13 @@ $$
 
 
 \begin{frame}{Conclusions and Ongoing Work}
+  \textbf{Current Status}
 \begin{itemize}
   \item A WENO finite difference scheme for two/phase fluid flow (KS, Computers and Fluids, 2019)
   \item Addition of positivity preservation for Euler System (DB and KS, unpublished)
+\end{itemize}
+\textbf{Ongoing Work}
+\begin{itemize}
   \item Extend positivity preserving method to two-fluid problems 
 \end{itemize}
 \end{frame}
@@ -632,25 +627,6 @@ $$
   \end{itemize}  
   
 \end{frame}  
-
-
-% \begin{frame}{Research Goals}
-%   The overall goals of this project are as follows:
-%   \begin{itemize}
-%   \item Implement Dr. Shahbazi's proposed primitive variable based WENO scheme \cite{Shahbazi} for $9^{\text{th}}$ order and higher
-%   \item Enforce positivity preservation for density and pressure
-%   \begin{itemize}
-%   \item[--] Generalize methods of Xiong et al \cite{Positivity2014} to primitive variable based WENO scheme.
-%   \end{itemize}
-%   \item Extend to multi-phase model
-%   \begin{itemize}
-%   \item[--] Four equation model of Saurel et al \cite{FourEquationModel}
-%   \item[--] Five equation model \cite{FiveEquationModel}
-%   \end{itemize}
-%   \item Extend to 2D
-%   \end{itemize}
-% \end{frame}
-
 
 \appendix
 
