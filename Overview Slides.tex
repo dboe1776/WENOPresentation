@@ -39,8 +39,9 @@
   \begin{frame}{Applications}
     \textbf{Two phase/fluid dynamics occur in numerous fields}
     \begin{itemize}
-      \item Sustainable Energy / cooling systems
+      \item Sustainable Energy
       \item Defense
+      \item Volcanology
       \item Healthcare
       \begin{itemize}
         \item[o] Treatment Modeling
@@ -49,15 +50,11 @@
         \end{itemize} 
         \item[o] Cold Chain equipment
         \begin{itemize}
+          \item Mobile absorption/adsorption based systems
           \item Portable vapor-compression systems
-          \item Mobile absorption based systems (Einstein refrigerator, ``Icyball'')
-          \item Switchable adsorption/zeolite refrigeration systems
+          \item Refrigerant Migration
         \end{itemize} 
-      \end{itemize}
-      \item Volcanology
-        \begin{itemize}
-          \item[o] Vulcanian eruptions
-        \end{itemize}
+      \end{itemize} 
     \end{itemize}
   \end{frame}
 
@@ -246,13 +243,13 @@
      & N=1600 Grid Points         &          N=50 Grid Points \\
     \midrule
     $L_{\infty}$ Error \% &      4.86\% &     0.13\%             \\
-    CPU Time [sec] &      	0.32 &        	0.20        \\
+    CPU Time [sec] &      	0.32 s &        	0.20 s        \\
     \bottomrule
     \end{tabular}}
   \end{table}
   \begin{figure}[H]
       \centering
-      \includegraphics[scale=0.45]{AdvectionHighOrderComparison2.eps}
+      \includegraphics[scale=0.5]{AdvectionHighOrderComparison2.eps}
     \end{figure}
 \end{frame}
 
@@ -263,7 +260,7 @@
   
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.45]{AdvectionHighOrderComparison_pulse.eps}
+    \includegraphics[scale=0.5]{AdvectionHighOrderComparison_pulse.eps}
     \end{figure}
 \end{frame}
 
@@ -476,7 +473,7 @@
   \textbf{WENO scheme significantly reduces the spurious oscillations}
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.475]{AdvectionHighOrderComparison_pulseWENO.eps}
+    \includegraphics[scale=0.55]{AdvectionHighOrderComparison_pulseWENO.eps}
     \end{figure}
 \end{frame}
 
@@ -494,11 +491,9 @@
 \begin{frame}{Non-linear scheme for Euler Equations}
   \begin{itemize}
     \item The WENO scheme is designed to provide ``essentially" non-oscillatory behavior; small oscillations may be remain.
-    \item In many cases, these small oscillations have no impact on the overall solution; however for certain scenarios, they can pose problems.
     \item For the Euler system, slight oscillations can result in negative density and/or pressure values which imply a non-real speed of sound
     \begin{itemize}
       \item[o] \textit{Complex sound speed results in simulation crashing.}
-      \item[o] This issue is readily observed for problems that involve high Mach shock waves with complex interactions
     \end{itemize}  
   \end{itemize}
   \textbf{To achieve a robust scheme, we need to enforce the positivity of density and pressure}
