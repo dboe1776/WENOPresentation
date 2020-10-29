@@ -171,7 +171,9 @@
 % \end{frame}
 
 \begin{frame}{Model Summary}
+  \centering
 \textbf{We need to solve the following model subject to shocks, oscillations, and discontinuities:}
+\centering
   \begin{align}
     \frac{\partial \rho}{\partial t}+\frac{\partial}{\partial x}[\rho v] &=0 \nonumber\\
     \frac{\partial}{\partial t}[\rho v]+\frac{\partial}{\partial x}[\rho v^2+p]&=0 \nonumber \\
@@ -197,7 +199,7 @@
 \end{itemize}
 \textbf{Why High Order Schemes?}
 \begin{itemize}
-\item High order schemes allow for greater accuracy per CPU cost \cite{Shahbazi2017,Shahbazi}
+\item High order schemes allow for greater accuracy per CPU cost (KS, JCP, 2017) \cite{Shahbazi2017,Shahbazi}
 \begin{itemize}
 \item[--] Enhances ability to solve multi-dimensional problems
 \end{itemize}
@@ -230,24 +232,38 @@
 
 \begin{frame}{Higher Order Schemes}
   %% This paragraph is coupled with the previous slide (which I am probably throwing out)
-  % High order finite difference approximations can be obtained by evaluating the Taylor expansion at multiple points surrounding $x_i$ and combining each approximation such that the $2^{nd}, 3^{rd}, 4^{th} \dots $ order terms cancel.  
-  Figure below compares $3^{rd}$ and $1^{st}$ order approximations for a simple, continuous advection problem.
-    \begin{figure}[H]
+  % High order finite difference approximations can be obtained by evaluating the Taylor expansion at multiple points surrounding $x_i$ and combining each approximation such that the $2^{nd}, 3^{rd}, 4^{th} \dots $ order terms cancel. 
+  \centering 
+  \textbf{High order schemes offer superior accuracy per CPU cost}
+  
+  \begin{table}[H]
+    \centering
+      \tabcolsep=0.3cm
+      \scalebox{0.55}{
+  \begin{tabular}{lll}
+    \toprule
+     &         First Order        &          Fifth Order   \\
+     & N=1600 Grid Points         &          N=50 Grid Points \\
+    \midrule
+    $L_{\infty}$ Error \% &      4.86\% &     0.13\%             \\
+    CPU Time [sec] &      	0.32 &        	0.20        \\
+    \bottomrule
+    \end{tabular}}
+  \end{table}
+  \begin{figure}[H]
       \centering
-      \includegraphics[scale=0.45]{AdvectionHighOrderComparison.eps}\caption{Comparison of First and Third Order solutions for advection equation with smooth initial condition}
-        \label{fig:First/HighOrderComparison}
-      \end{figure}
-
+      \includegraphics[scale=0.45]{AdvectionHighOrderComparison2.eps}
+    \end{figure}
 \end{frame}
 
-\begin{frame}{Discontinuous Solutions}
 
-  For discontinuous solutions, high order methods suffer from spurious oscillations that do not diminish with grid refinement.
+\begin{frame}{Discontinuous Solutions}
+  \centering
+  \textbf{For discontinuous solutions, high order methods suffer from spurious oscillations that do not diminish with grid refinement.}
   
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.45]{AdvectionHighOrderComparison_pulse.eps}\caption{Comparison of First and Third Order solutions for advection equation with discontinuous initial condition}
-      \label{fig:First/HighOrderComparison_pulse}
+    \includegraphics[scale=0.45]{AdvectionHighOrderComparison_pulse.eps}
     \end{figure}
 \end{frame}
 
@@ -451,42 +467,44 @@
   $$
   \hat{u}_{i+\frac{1}{2}} \approx u(x_{i}+\tfrac{1}{2}h)
   $$
-  The derivative is then approximated to high order using tabulated constants $d_j$.
+  The derivative is then approximated to high order using constants $d_j$ introduced and tabulated to 9$^{th}$ order by Shahbazi (Computers and Fluids, 2019) and extended to 13$^{th}$ order (DB and KS, unpublished).
   $$	h\frac{\partial f}{\partial x}\bigg|_{x_i}\approx \sum_{j=1}^{j=\text{ceil}(\tfrac{r}{2})}d_j(f(\hat{u}_{i+j-1/2})-f(\hat{u}_{i-j-1/2}))$$
 \end{frame}
 
 \begin{frame}{Non-Linear Scheme for Advected Pulse}
+  \centering
+  \textbf{WENO scheme significantly reduces the spurious oscillations}
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.475]{AdvectionHighOrderComparison_pulseWENO.eps}\caption{Comparison of linear and WENO schemes for advected pulse}
+    \includegraphics[scale=0.475]{AdvectionHighOrderComparison_pulseWENO.eps}
     \end{figure}
 \end{frame}
 
 \begin{frame}{Non-linear Scheme for Euler System}
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.25]{DensitySolutions.eps}\caption{Comparison of linear and non-linear schemes for shock-entropy wave interaction problem}
-      \label{fig:ShockEntropy}
+    \includegraphics[scale=0.25]{DensitySolutions.eps}
     \end{figure}
 \end{frame}
 
 \begin{frame}{Non-linear scheme for Euler Equations}
   \begin{itemize}
-    \item The WENO scheme is designed to provide ``essentially" non-oscillatory behavior, meaning that some relatively insignificant, small oscillations may be remain.
+    \item The WENO scheme is designed to provide ``essentially" non-oscillatory behavior, 
+    \item Some relatively insignificant, small oscillations may be remain.
     \item In many cases, these small oscillations have no impact on the overall solution; however for certain scenarios, they can pose problems.
-    \item For the Euler system, slight oscillations can result in negative density and/or pressure values which imply a complex speed of sound
+    \item For the Euler system, slight oscillations can result in negative density and/or pressure values which imply a non-real speed of sound
     \begin{itemize}
-      \item[o] Unphysical results lead to simulation crashing.
+      \item[o] \textit{Complex sound speed results in simulation crashing.}
       \item[o] This issue is readily observed for problems that involve high Mach shock waves with complex interactions
     \end{itemize}  
   \end{itemize}
-  \textbf{To achieve a robust scheme, a positivity preserving method needs to be developed.}
+  \textbf{To achieve a robust scheme, we need to enforce the positivity of density and pressure}
 \end{frame}
 
 \begin{frame}{Positivity Example}
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.275]{PositivityZoom.eps}\caption{Example of negative pressure values for high Mach shock wave}
+    \includegraphics[scale=0.275]{PositivityZoom.eps}
     \end{figure}
   % $$u_i^{n+1}=u_i^n-\frac{\tau}{h}\{H^{RK}_{i,+} - H^{RK}_{i,-}\}$$
 \end{frame}
@@ -525,7 +543,7 @@
 
 
 \begin{frame}{Positivity Preserving Scheme}
-  The positivity preserving scheme is realized by forming a modified flux as \cite{Positivity2013,Positivity2014}: 
+  The positivity preserving scheme is realized by forming a modified flux (Xu, Mathematics of Computation, 2014): 
   $$\tilde{H}_{i+1/2}=h_{i+1/2} + \theta_{i+1/2}(H_{i+1/2} - h_{i+1/2})$$
   
   \begin{itemize}
@@ -558,24 +576,42 @@
 \begin{frame}{Positivity Example}
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.275]{PositivityZoomDenstiy.eps}\caption{Impact of positivity scheme for strong shock/interface interaction}
+    \includegraphics[scale=0.275]{PositivityZoomDenstiy.eps}
     \end{figure}
 \end{frame}
 
 \begin{frame}{Positivity Example}
   \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.275]{ShockInterfaceComparison.eps}\caption{Example of negative pressure values for high Mach shock wave}
+    \includegraphics[scale=0.275]{ShockInterfaceComparison.eps}
     \end{figure}
 \end{frame}
 
+\begin{frame}{Two-fluid Positivity}
+  To retain positivity within the two-fluid model we need to enforce the following (KS, unpublished):
+  \begin{itemize}
+    \item Upper and lower bounds of order parameters
+    \item Positivity of density
+    \item Positivity of a modified pressure $\frac{p+\Pi}{\gamma-1}$  
+    \begin{itemize}
+      \item[o] Ensures speed of sound is a real number
+    \end{itemize}
+  \end{itemize}
+\end{frame}
 
-% \begin{frame}{Two-fluid Positivity}
-%   The two fluid model adds some additional challenges to the positivity scheme.
-%   \begin{itemize}
-%     \item The two order parameter equations contain source terms
-%   \end{itemize}
-% \end{frame}
+\begin{frame}{Two-Fluid Positivity Implementation}
+Two-fluid positivity is implemented using the flux limiting technique to form modified fluxes:
+$$\tilde{H}_{i+1/2}=h_{i+1/2} + \theta_{i+1/2}(H_{i+1/2} - h_{i+1/2})$$
+Because of the source terms in the order parameter equations, at each cell, we need to enforce (DB and KS, unpublished)
+$$
+\theta_{i+\frac{1}{2}} = \theta_{i-\frac{1}{2}} 
+$$
+
+\end{frame}
+
+\begin{frame}{Conclusions and Future Work}
+
+\end{frame}
 
 \begin{frame}{Acknowledgment}
   \begin{itemize}
@@ -605,73 +641,6 @@
 %   \end{itemize}
 % \end{frame}
 
-
-
-\section{High Level Description of Method}
-
-\begin{frame}{Euler Equations of Gas Dynamics}
-To demonstrate the mechanisms of a non-linear scheme, consider the three-dimensional Euler Equations of gas dynamics:
-\begin{align}
-\frac{\partial \rho}{\partial t}+\frac{\partial}{\partial x_j}[\rho v_j] &=0\label{eq:MassBalance}\\
-\frac{\partial}{\partial t}[\rho v_i]+\frac{\partial}{\partial x_j}[\rho v_iv_j+p\delta_{ij}]&=0\label{eq:MomentaBalance}\\
-\frac{\partial}{\partial t}[\rho(e+\tfrac{v_jv_j}{2})]+\frac{\partial}{\partial x_i}[(\rho e+\tfrac{\rho v_jv_j}{2} +p)v_i]&=0\label{eq:EnergyBalance}
-\end{align}
-
-where $e$ is the specific internal energy. In addition to these three equations, an additional property relation (e.g. Ideal Gas Law) is utilized in order to obtain a solvable system. 
-\end{frame}
-
-% Add gamma for air.. Euler Equations for liquid and gasses
-
-\begin{frame}{Numerical Interpretation of Euler System}
-Each one of the Euler Equations is just a conservation law of the form:
-\begin{equation}
-	\frac{\partial u}{\partial t}=-\frac{\partial}{\partial x}[f(u)]\label{eq:ConservationLaw}
-\end{equation}
- enforced upon mass, momentum, and energy, respectively. We define a vector of conserved variables as: $$\textbf{u}=[\rho,\rho v,\rho(e+\tfrac{v^2}{2})]^T$$ and the flux of the conserved variables as:
-\begin{equation}
-	\textbf{f} = [\rho v, \rho v^2 + p, (\rho e +\frac{\rho v^2}{2}+p)v]^T\label{eq: Flux Functions}
-\end{equation}
-
-Finally, we can define the primitive variables as the quantities from which the conservation variables are constructed
-
-\begin{equation}
-\textbf{u}_p=[\rho,v,p]^T
-\end{equation}
-
-\end{frame}
-
-
-
-
-\begin{frame}{Traditional Flux Based Approach}
-Traditionally, the WENO reconstruction process has been performed on the flux functions \eqref{eq: Flux Functions}.  This allows for the right hand side of a conservation law to be expressed exactly as:
-\begin{equation}
-\frac{\partial}{\partial	x}[f(u)]\bigg|_{x_i}=\frac{h(u_{i+1/2}) - h(u_{i-1/2})}{\Delta x} \label{eq: Traditional Derivative}
-\end{equation}
-where $h$ is defined to be some function that gives $f(u(x))$ when averaged over the interval $x\in[x-\frac{1}{2}\Delta x, x+\frac{1}{2}\Delta x]$, that is:
-\begin{equation}
-f(u(x))=\frac{1}{\Delta x} \int_{x-\frac{1}{2}\Delta x}^{x+\frac{1}{2}\Delta x}h(u(\xi))d\xi
-\end{equation}
-Since, $f(u(x_i))$ is known, the values $h(u_{i\pm1/2})\approx P_{WENO, 2r-1}(x_{i+\frac{1}{2}})$ can be approximated using the WENO scheme to yield a high order approximation to the spatial derivative term in the conservation law.  However, as shown by Shahbazi \cite{Shahbazi}, this approach can fail to preserve the non-oscillatory property for certain multi-fluid flow problems.  To combat this, a new method based upon the WENO reconstruction of primitive variables was proposed.
-\end{frame}
-
-
-\begin{frame}{Primitive Variable Reconstruction Approach}
-The key difference between the traditional WENO method and the scheme proposed by Shahbazi \cite{Shahbazi} lies in how the spatial derivatives are calculated.  In the traditional approach, the derivatives are calculated using the WENO reconstruction directly on the flux functions.   In the new method, the derivatives are approximated to order $2r$ by performing the WENO reconstruction on the primitive variables and then forming the flux functions directly from these approximated values.  Here, the derivative term is calculated as:     
-
-\begin{equation}
-h\frac{\partial f}{\partial x}\bigg|_{x_i}\approx (\hat{f}_{i+1/2}-\hat{f}_{i-1/2}) = \sum_{q=0}^{q=r}d_q(f^{WENO}_{i+q-1/2}-f^{WENO}_{i-q-1/2})
-\label{eq: derivative definition}
-\end{equation}  
-
-With Equation \ref{eq: derivative definition} giving a high order approximation for the right hand side of each governing equation, a High-order Runge-Kutte method can be utilized to integrate in time. 
-
-\end{frame}
-
-
-\begin{frame}[standout]
-  Thank You
-\end{frame}
 
 \appendix
 
